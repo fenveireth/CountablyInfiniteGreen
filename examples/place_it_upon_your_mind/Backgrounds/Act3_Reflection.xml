@@ -1,0 +1,179 @@
+<!--
+	You may edit these files while the game is running
+	When it detects a change, it will reload them and reset the current scene
+-->
+<backgrounds>
+	<background>
+		<background_name>Act3_Reflection</background_name>
+		<base_image_width>1778</base_image_width> <!-- Also controls scale. required -->
+		<!--<scale>1</scale>-->
+		<parallax_speed>0.3</parallax_speed> <!-- scales movement amplitude as well -->
+		<entity>
+			<!--
+				Instead of specifying a file path within your mod, you may use
+				this 'base:' syntax to reuse sprites from the base game
+			-->
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0008_sky</path>
+			<transform>
+				<scale>
+					<x>0.5</x>
+					<y>0.5</y>
+				</scale>
+			</transform>
+			<!--
+			<parallax>
+				<movement> <!- in "group","detach",none ->
+			</parallax>
+			<interaction>
+				<onclick>
+					<trigger/>
+				</onclick>
+			</interaction> -->
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0007_trees</path>
+			<transform>
+				<scale>
+					<x>0.5</x>
+					<y>0.5</y>
+				</scale>
+			</transform>
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base</path>
+			<transform>
+				<position>
+					<y>-29</y>
+				</position>
+				<scale>
+					<x>0.46</x>
+					<y>0.46</y>
+				</scale>
+			</transform>
+			<!--
+				At present, you cannot specify special effect / animation
+				This includes rigging for tail sway that should go here
+			-->
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0005_earth</path>
+			<transform>
+				<position>
+					<y>-29</y>
+				</position>
+				<scale>
+					<x>0.46</x>
+					<y>0.46</y>
+				</scale>
+			</transform>
+			<!--
+				Z position in 'transform' only matters for occlusion (the game sets it automatically)
+				For movement, use 'group' here on consecutive layers to specify 'same depth as previous layer'
+			-->
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<!--
+				At present, you cannot specify special effet / animation
+				This includes the elemental mastery fade-in that should go here
+			-->
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0004_air</path>
+			<transform>
+				<position>
+					<y>-29</y>
+				</position>
+				<scale>
+					<x>0.46</x>
+					<y>0.46</y>
+				</scale>
+			</transform><parallax>
+				<movement>group</movement>
+			</parallax>
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0003_water</path>
+			<transform>
+				<position>
+					<y>-29</y>
+				</position>
+				<scale>
+					<x>0.46</x>
+					<y>0.46</y>
+				</scale>
+			</transform><parallax>
+				<movement>group</movement>
+			</parallax>
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0002_fire</path>
+			<transform>
+				<position>
+					<y>-29</y>
+				</position>
+				<scale>
+					<x>0.46</x>
+					<y>0.46</y>
+				</scale>
+			</transform><parallax>
+				<movement>group</movement>
+			</parallax>
+		</entity>
+		<entity>
+			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0000_ground</path>
+			<transform>
+				<scale>
+					<x>0.5</x>
+					<y>0.5</y>
+				</scale>
+			</transform>
+		</entity>
+		<entity>
+			<!--
+				All the way to foreground, because it is the most floaty.
+				The layers groups are always evenly spaced
+			-->
+			<path>crown.png</path>
+			<transform>
+				<position>
+					<x>-70</x>
+					<y>400</y>
+				</position>
+				<rotation>
+					<z>40</z>
+				</rotation>
+				<scale>
+					<x>.3</x>
+					<y>.3</y>
+				</scale>
+			</transform>
+			<visibility>
+				<!-- <initial_state/> <!- in "visible","hidden",none -->
+				<!-- <fade_time/> -->
+				<appearance_groups>
+					<appearance_dependencies>
+						<uid/> <!-- mandatory, even if empty -->
+						<dependence>
+							<stat>HASSTATUS_CROWN</stat>
+							<!--
+								As in rest of the XML events:
+								min = min + (min_multiplier * $min_stat);
+								man = max + (max_multiplier * $max_stat);
+								if 'compare' is:
+									0 / other: $stat between min and max (inclusive)
+									1: $stat == min
+									2: $stat != min
+									3: $stat >= min
+									4: $stat <= max
+									any, but min_stat starts with a ',': $stat belongs to comma-separated list
+							-->
+							<compare>1</compare>
+							<min>1</min>
+						</dependence>
+					</appearance_dependencies>
+				</appearance_groups>
+			</visibility>
+		</entity>
+	</background>
+</backgrounds>

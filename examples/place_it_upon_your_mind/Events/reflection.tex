@@ -1,0 +1,21 @@
+% Grammar for these files is only loosely inspired by LaTeX
+% I just name them .tex to get syntax coloring for free
+
+% the \event command completely defines an event, and will overwrite a
+% previous event with the same name if it exists
+
+\event{lair_reflection_act3}
+\image{Act3_Reflection} % unlike xml events, Backgrounds are searched in mod first
+The sight of your current Self fills you with pride.
+
+\option /EndEvent
+% \go must be the last command in a transition (after all parameters are set).
+% But an \option paragraph may have several \go's, if noninteractive conditions are used
+\transition{fade} \go{MainLair}
+
+% You could also use the \eventModify command, to append content to the
+% previous event of the same name
+% This example would become simply:
+%
+% \eventModify{lair_reflection_act3}
+% \image{Act3_Reflection}

@@ -1,0 +1,12 @@
+<mod>
+	<!--
+	- No line breaks in description, or the whole thing gets replaced by a '...' for overflowing the box
+	- The version tags don't do anything yet, but let's plan ahead
+	- At present, you cannot have more than 1 XML comment in this 'meta.xml' file (crashes the Profile menu)
+	-->
+	<title>Place It Upon Your Mind</title>
+	<author>Fenveireth</author>
+	<description>Accepting the gift of Truth lets the Spiritkeeper visibly wear it</description>
+	<version>1</version>
+	<targetLoaderVersion>1</targetLoaderVersion>
+</mod>
