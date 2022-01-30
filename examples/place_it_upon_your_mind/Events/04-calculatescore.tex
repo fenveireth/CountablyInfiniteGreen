@@ -1,0 +1,31 @@
+% Last form for \set allows limited arithmetics
+
+\event{fen_test_set}
+\image{base:FF2_Island}
+\sound{base:Audio/FF2_Ambience FF2Amb} \sound{base:Audio/Flying Flying}
+
+Calculating from {RENOWN}, {SURVIVAL}, {BEATNEVEREVER}, {TREASURE_DARKSPINE},
+{COMPASSION}:
+% Use '*' to read a stat
+\set{MTB_FAVOR = *RENOWN}
+\set{MTB_FAVOR += *SURVIVAL}
+% multiplication only works in combination with eval
+\set{MTB_FAVOR += *BEATNEVEREVER * 5}
+\set{MTB_FAVOR += *TREASURE_DARKSPINE * 5}
+\set{MTB_FAVOR -= *COMPASSION}
+
+% Be aware, reads made with this curly bracket syntax in paragraphs are all
+% substituted when arriving into the event.
+% You must add a transition to make it visible this way
+% AND: the [Continue] rule is not actually automatic, it only triggers if there
+% are at least 2 paragraphs
+Which is...
+
+\if{MTB_FAVOR >= 1} \go{fen_test_set2a}
+\go{fen_test_set2b}
+
+\event{fen_test_set2a}
+Calculated: {MTB_FAVOR}, which is >= 1
+
+\event{fen_test_set2b}
+Calculated: {MTB_FAVOR}, which is not >= 1

@@ -1,0 +1,222 @@
+% A more complete example: rewrite the wolf den event
+
+% Demonstrates more formatting, paragraph-level triggers, and how to start a
+% fight
+
+% A note on event names:
+% "gw3_1" must keep that name because it is the one called from the map.
+% But it would be okay to pick clearer names for the intermediate states
+% The only downfall is if a later Mod tries to change this event too, it may
+% use the old names and reference the now-disowned and unreachable states.
+% Not doing that here, because it is an observable change, and this example
+% doesn't want to introduce any
+
+\event{gw3_1}
+\image{base:GW3_WolfCubs}
+\sound{base:Audio/GW3_Ambience GW3Amb}
+
+You have found the Lair of the Clansingers deep in the heart of the Packlands.
+Most of the Clan is out hunting this day, but they have posted a sentry.
+
+Its posture and energy leave absolutely no room for doubt: it is guarding some
+kind of Treasure.
+
+Sneaking past it will be impossible, as it is directly blocking the Lair. How
+will you proceed?
+
+\option Ambush it stealthily.
+	% Check on 'RAW_': ignores any buff/debuff, and the foreshadowing planet will
+	% not come up.
+	% The foreshadowing is only active for \if checks anyway, not \hidden checks
+	\hidden{RAW_WATER >= 50}
+	\hint{If only you could blend in with your surroudings...}
+	\go{gw3_1a}
+
+\option Challeng it honorably. \go{gw3_1b}
+
+\option Leave this place, for now, and spend this Sun elsewhere.
+	% Undo the set from the map button
+	\set{GW3_VISITED = 0} \go{gw3_1c}
+
+
+\event{gw3_1a}
+You shift your armor's colors to blend in with your surroundings. Circling
+around, you climb up the opposite side of the Lair-hill. Your movements are
+slow, so slow you are barely moving, but your are a patient and accomplished
+predator.
+
+Clansingers have powerful ears and noses, but your expertise has brought you
+victory; you are within pouncing range of the guard, perched on the hill above
+it, and it does not know you are there. When the moment is right, you strike.
+
+The sentry is shocked by your sudden attack, and its red Essence is already on
+your claws and fangs before it can properly react. Dazed and wounded, it flees
+into the Green.
+
+Soon, you hear its Summoning Song ringing out, calling the Clan back to the Lair
+to defend it. You must be swift.
+
+\\ % serves good enough as empty paragraph. An extra pause is needed here
+
+% direct call to \go is the same as wrapping it in an "\option [Continue]"
+% This value for the text is special: it is auto-clicked and no menu is shown
+\set{WOLFREP -= 1} \go{gw3_2}
+
+
+\event{gw3_1b}
+% text style spans cannot cross paragraph boundaries.
+% All whitespace runs are folded into a single space, so use '\\' for a '<br/>'
+After you step out of hiding and announce your challenge, the sentry replies:\\
+<color 3d5bff><wolf>I am Guards-the-Treasure, the One Left Behind.\\
+I am old, but strong, forged in many battles.</color>
+
+<color 3d5bff><wolf>My Body and Essence are unified\\
+In standing between our most prized possession\\
+And any who would take it.</color>
+
+<color 3d5bff><wolf>Though I fear you, I shall remain, like a Stone\\
+Unmoved and ever-ready, and honor your challenge.\\
+Let the Dance of Destruction begin.</color>
+
+\\ % again, pause, don't interrupt the wolf
+
+% Variables controlling the fight system would deserve their own chapter
+\set{CURRENT_PREY = CLANSINGER}
+\set{TEMP_GENERIC_COMBAT_START = The Dance of Destruction begins...}
+\set{HUNT_SUCCESS_LOCATION = GW3_1S} % note case-insensitive event names
+\set{HUNT_FAIL_LOCATION = GW3_1F}
+\set{TEMP_ADDTOENEMYSTATS = ENDRATIO,0.25}
+\set{HUNTING_GROUND = FOREST} \set{HUNTING_NIGHT = 1}
+\transition{fadewhite} \soundStop{GW3Amb} \go{HuntingBaseCombat}
+
+
+\event{gw3_1c}
+You are not yet ready to make an attempt for the Treasure of the Clansingers.
+You decide to return another Sun.
+
+\option /EndEvent \set{GW3_1_VISITED = 0}
+\transition{fade} \soundStop{GW3Amb} \go{GreatGreenAct2_Map}
+
+\event{gw3_1f}
+Defeated by the Guardian, you retreat. When next you return, the Clansinger Lair
+stands empty, their Treasure moved to a new location.
+
+\option /EndEvent
+\transition{fade} \soundStop{GW3Amb} \go{DayTransition}
+
+
+\event{gw3_1s}
+% Must be reset: we are coming back from the fight area
+\image{base:GW3_WolfCubs}
+\sound{base:Audio/GW3_Ambience GW3Amb}
+The guardian is defeated, and attemps to escape. Will you allow it to leave?
+
+\option Yes. \set{WOLFREP += 1} \go{gw3_2}
+\option No, fight to the death. \go{gw3_2}
+
+
+\event{gw3_2}
+
+% This will cause the fade in the background image when this paragraph is shown
+\set{TEMP_GW3_DEN = 1}
+\set{GW3_COMPLETE = 1} \sound{base:Audio/GW3_Music GW3Mus}
+Entering the Lair, you are dismayed to find no shiny things or rare objects.
+Instead, you see several hatchlings of the Clansinger people. They are redolent
+with fear, but one of them bravely stands and approaches you.
+
+<color 2878ff><wolf>I am Shining-Eye, last-born\\
+of the Future of the Claws-of-the-Spirit Clan.\\
+Have you come to Destroy us, Great Draak?</color>
+
+The aroma of their delicious, tender, milk-fed flesh calls to you. All together,
+they would be a very fine meal indeed, and they are defenseless, their small
+fangs and claws not even capable of piercing your armor.
+
+How will you answer the hatchling's question?
+
+\option Yes. (Consume them.)
+	\set{TEMP_FORESHADOW_ENERGY += 50} \set{ENERGY += 50} \go{gw3_2a}
+
+\option Perhaps not. (Converse with them.) \go{gw3_2b}
+
+
+\event{gw3_2a}
+The hatchlings have the spirits of warriors, and they attempt to fight you as
+best they can, but they do not yet have the Bodies to put up an effective
+defense. One by one, you Silence and Consume them.
+
+The flavor is exquisite. Their flesh practically melts in your mouth, and even
+their fur adds to the experience, short and velvety as it is.
+
+As their Essence becomes yours, you feel invigorated. The adults approaching, so
+you make a hasty retreat, but you have eaten well this Sun.
+
+\option /EndEvent \set{WOLFREP -= 3} \set{KILLEDCUBS = 1}
+\set{APPLY_EFFECT = INVIGORATED;TIME;4} \set{SURVIVAL += 1}
+\soundStop{GW3_Amb} \soundStop{GW3_Mus} \transition{fade} \go{DayTransition}
+
+
+\event{gw3_2b}
+You explain to the younglings that you came here in search of Treasure, not
+food. Shining-Eye replies:
+
+<color 2878ff><wolf>We are the greatest Treasure of the Claws-of-the-Spirit
+Clan.\\ We are the Immortality of our People.</color>
+
+<color 2878ff><wolf>From our Birther-Creator's Body, we draw sacred milk,\\
+And from our Giver-Creator's mouth, we receive warm flesh.</color>
+
+<color 2878ff><wolf>We flow from them, like a River, bringing their Songs\\
+Into the Future; there can be no greater Treasure, or so they Sing.</color>
+\set{CLANSINGER_MASTERY += 3} % triggers knowledge sigil appearance
+
+What will you do?
+
+% Shows 'you have gained knwwledge' lines on the board.
+% Unlike renown and elemental masteries, they are not automatically tracked
+/MasteryDisplay
+
+\option Let them Live, and leave this place. \go{gw3_2ba}
+\option Take one of them alive back to your Lair. \go{gw3_2bb}
+\option Consume them after all.
+	\set{TEMP_FORESHADOW_ENERGY += 50} \set{ENERGY += 50} \go{gw3_2a}
+
+
+\event{gw3_2ba}
+Silently, you withdraw from the Lair of the Clansingers and hasten into the
+Green, leaving before the Clan arrives. When they do, they are relieved and
+joyous to find their precious Treasure still alive and whole.
+
+You can hear them raise a Song of Thanksgiving for their good fortune, the Song
+echoing and twisting joyfully among the Trees:
+
+<color 00b4ff><wolf>Our Future lives! Love's labor is not lost!</color>
+
+\option /EndEvent \set{WOLFREP += 2} \set{SPAREDCUBS = 1} \set{COMPASSION += 1}
+\soundStop{GW3Amb} \soundStop{GW3Mus} \transition{fade} \go{DayTransition}
+
+
+\event{gw3_2bb}
+Seizing Shining-Eye gently but firmly in your jaws, you retract your head from
+the Lair and make swift progress through the woods.
+
+You almost swallow or choke on it a few times in your haste, and the Clan in in
+close pursuit, but they give up after you pass the boundary of their territory.
+
+When you deposit Shining-Eye in your Lair, it sings a pitiable song, trying to
+call its Clan to it, but it is much too far away to be heard.
+
+Eventually, it collapses in despair, and you think it may have gone Silent,
+Destroyed by pure grief, but after a few Suns it grows accustomed to its new
+home and regains its energy.
+
+Soon, it has learned to look to you for sustenance and entertainment. You must
+provide food for it, reducing your own stores, and your tail becomes a veritable
+chew-toy.
+
+You can, at least, consume it if it grows too troublesome.
+
+\option /EndEvent
+	\set{TREASURE_SHINING_EYE = 1} % brings up treasure acquisition screen
+	\set{TOOKCUB = 1}
+	\soundStop{GW3Amb} \soundStop{GW3Mus} \transition{fade} \go{DayTransition}
