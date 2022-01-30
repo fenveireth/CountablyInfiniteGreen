@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -17,16 +18,28 @@ namespace FenLoader
 		private bool hadLF;
 		private bool startArg;
 		private bool inArg;
+		private int lineno = 1;
 
 		private StringBuilder paragraph = new StringBuilder();
+		private bool parBR;
+		private StringBuilder subgroup = new StringBuilder();
 		private EventOption option;
+		private List<FXEffect> effects = new List<FXEffect>();
+		private List<EventOptionStatDependence> conditions = new List<EventOptionStatDependence>();
+		private List<EventOptionStatDependence> ifs = new List<EventOptionStatDependence>();
+		private List<EventOptionStatInfluence> sets = new List<EventOptionStatInfluence>();
 
 		private EventActor evt;
 
-		private string transition;
+		private string transition = "";
 
 		private EventParser()
 		{
+		}
+
+		private void Raise(string msg)
+		{
+			throw new Exception($"  - line {lineno}: " + msg);
 		}
 
 		private void Chr(int c)
@@ -41,20 +54,29 @@ namespace FenLoader
 
 			if (c == '%')
 				inComment = true;
-			if (inComment) {
-				inComment = c != '\n';
+			if (inComment)
+			{
+				if (c == '\n') {
+					++lineno;
+					inComment = false;
+				}
 				return;
 			}
 
 			if (!char.IsWhiteSpace((char)c))
 				hadLF = false;
 
-			bool wasInArg = inArg;
 			switch (c)
 			{
 			case '\\':
-				FlushWord();
-				inCommand = true;
+				if (inCommand && acc.Count == 0) {
+					acc.Add((byte)c);
+					FlushWord();
+				}
+				else {
+					FlushWord();
+					inCommand = true;
+				}
 				break;
 			case ' ':
 			case '\t':
@@ -62,6 +84,7 @@ namespace FenLoader
 				FlushWord();
 				break;
 			case '\n':
+				++lineno;
 				if (hadLF)
 					FlushParagraph();
 				else {
@@ -77,8 +100,13 @@ namespace FenLoader
 					acc.Add((byte)c);
 				break;
 			case '}':
-				FlushWord();
-				if (!wasInArg)
+				if (inArg) {
+					FlushWord();
+					inArg = false;
+					Command(subgroup.ToString());
+					subgroup.Clear();
+				}
+				else
 					acc.Add((byte)c);
 				break;
 			default:
@@ -95,9 +123,11 @@ namespace FenLoader
 			string word = Encoding.UTF8.GetString(acc.ToArray());
 			acc.Clear();
 
-			if (inArg) {
-				Command(word);
-				inArg = false;
+			if (inArg)
+			{
+				if (subgroup.Length > 0)
+					subgroup.Append(" ");
+				subgroup.Append(word);
 				return;
 			}
 
@@ -114,9 +144,10 @@ namespace FenLoader
 				return;
 			}
 
-			if (paragraph.Length > 0)
+			if (paragraph.Length > 0 && !parBR)
 				paragraph.Append(" ");
 			paragraph.Append(word);
+			parBR = false;
 		}
 
 		private static FieldInfo getEvtMap = typeof(EventHolder).GetField("eventMap", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -125,49 +156,186 @@ namespace FenLoader
 		{
 			switch (command)
 			{
-				case "event":
-					FlushEvent();
-					evt = new EventActor();
-					evt.event_title = arg;
-					db.allLoadedEvents.Add(evt);
-					var em = (Dictionary<string, int>)getEvtMap.GetValue(db);
-					em[arg] = db.allLoadedEvents.Count - 1;
-					break;
-				case "eventModify":
-					FlushEvent();
-					em = (Dictionary<string, int>)getEvtMap.GetValue(db);
-					if (!em.TryGetValue(arg, out int iEvt))
-						throw new ArgumentException("Can't modify unknown event '" + arg + "'");
-					evt = db.allLoadedEvents[iEvt];
-					break;
-				case "image":
-					evt.image_prefab_name = "mod:" + arg;
-					break;
-				case "option":
+			// event level
+			case "event":
+				FlushEvent();
+				evt = new EventActor();
+				evt.event_title = arg;
+				db.allLoadedEvents.Add(evt);
+				var em = (Dictionary<string, int>)getEvtMap.GetValue(db);
+				em[arg] = db.allLoadedEvents.Count - 1;
+				break;
+			case "eventModify":
+				FlushEvent();
+				em = (Dictionary<string, int>)getEvtMap.GetValue(db);
+				if (!em.TryGetValue(arg, out int iEvt))
+					Raise("Can't modify unknown event '" + arg + "'");
+				evt = db.allLoadedEvents[iEvt];
+				break;
+			case "image":
+				if (arg.StartsWith("base:"))
+					arg = arg.Substring(5);
+				else
+					arg = "mod:" + arg;
+				evt.image_prefab_name = arg;
+				break;
+			// paragraph level
+			case "\\":
+				paragraph.Append("\n");
+				parBR = true;
+				break;
+			case "effect":
+				string[] args = arg.Split();
+				string delay = args.Length > 1 ? args[1] : "0";
+				effects.Add(new FXEffect(args[0], float.Parse(delay)));
+				break;
+			case "set":
+				sets.Add(ParseSet(arg));
+				break;
+			case "sound":
+				args = arg.Split();
+				if (args[0].StartsWith("base:"))
+					args[0] = args[0].Substring(5);
+				string chn = args.Length > 1 ? args[1] : "";
+				effects.Add(new FXEffect(args[0], 0, chn));
+				break;
+			case "soundStop":
+				effects.Add(new FXEffect("", 0, arg, true));
+				break;
+			// option level
+			case "option":
+				FlushParagraph();
+				option = new EventOption();
+				break;
+			case "hidden":
+				if (option == null)
+					Raise("stray \\hidden");
+				conditions.Add(ParseCond(arg));
+				break;
+			case "hint":
+				if (option == null)
+					Raise("stray \\hint");
+				option.hidden_message_text = arg;
+				break;
+			// transition level
+			case "if":
+				ifs.Add(ParseCond(arg));
+				break;
+			case "transition":
+				transition = arg;
+				break;
+			case "go":
+				if (option == null) {
+					FlushParagraph();
 					option = new EventOption();
-					break;
-				case "transition":
-					transition = arg;
-					break;
-				case "go":
-					var dst = new EventDestination();
-					dst.destination_ID = arg;
-					dst.transition_type = transition;
-					option.AddDestination(dst);
-					break;
-				default:
-					throw new ArgumentException("Unknown command: " + command);
+					paragraph.Append("[Continue]");
+				}
+				var dst = new EventDestination();
+				dst.destination_ID = arg;
+				dst.transition_type = transition;
+				dst.stat_check = ifs.ToArray();
+				dst.influences = sets.ToArray();
+				option.AddDestination(dst);
+				transition = "";
+				ifs.Clear();
+				sets.Clear();
+				break;
+
+			default:
+				Raise("Unknown command: " + command);
+				break;
 			}
+		}
+
+		private EventOptionStatDependence ParseCond(string expr)
+		{
+			string[] w = expr.Split();
+			if (w.Length != 3)
+				Raise("invalid condition");
+
+			int comp = 1;
+			switch (w[1])
+			{
+			case "==": comp = 1; break;
+			case "!=": comp = 2; break;
+			case ">=": comp = 3; break;
+			case "<=": comp = 4; break;
+			case "in": comp = 5; break;
+			default: Raise("invalid condition"); break;
+			}
+
+			if (comp == 5)
+				return new EventOptionStatDependence(w[0], 1, 0, 0, "," + w[2]);
+
+			if (!float.TryParse(w[2], out float v))
+				Raise("invalid condition");
+			return new EventOptionStatDependence(w[0], comp, v, v);
+		}
+
+		private EventOptionStatInfluence ParseSet(string expr)
+		{
+			string[] w = expr.Split();
+			if (w.Length < 3)
+				Raise("Invalid set");
+
+			bool isDeref = w[2][0] == '*';
+			float mult = 1;
+
+			if (w.Length > 3)
+			{
+				if (isDeref) {
+					if (!(w.Length == 5 && w[3] == "*" && float.TryParse(w[4], out mult)))
+						Raise("Invalid set");
+				}
+				else // free-form text for a ','-set
+					w[2] = string.Join(" ", w.Skip(2));
+			}
+
+			var ty = EventOptionStatInfluence.InfluenceType.Set;
+			bool neg = false;
+			switch (w[1])
+			{
+			case "=": break;
+			case "+=": ty = EventOptionStatInfluence.InfluenceType.Add; break;
+			case "-=": ty = EventOptionStatInfluence.InfluenceType.Add; neg = true; break;
+			default: Raise("invalid set"); break;
+			}
+
+			string influencer = "";
+			if (!float.TryParse(w[2], out float v))
+			{
+				if (isDeref)
+					influencer = w[2].Substring(1);
+				else if (w[1] == "=")
+					influencer = "," + w[2];
+				else
+					Raise("invalid set");
+			}
+
+			if (neg) {
+				v = -v;
+				mult = -mult;
+			}
+			return new EventOptionStatInfluence(w[0], v, ty, influencer, mult);
 		}
 
 		private void FlushParagraph()
 		{
-			if (option == null) {
-				if (paragraph.Length > 0)
-					evt.AddTextBreakAtEnd(paragraph.ToString());
+			if (option == null)
+			{
+				if (paragraph.Length > 0) {
+					evt.AddTextBreakAtEnd(paragraph.ToString(), sets.ToArray(), effects.ToArray());
+					sets.Clear();
+					effects.Clear();
+				}
 			}
-			else {
+			else
+			{
 				option.option_text = paragraph.ToString();
+				if (conditions.Count > 0) {
+					option.AddAppearanceDependence(new EventOptionAppearanceGroup(conditions.ToArray()));
+					conditions.Clear();
+				}
 				evt.AddOption(option);
 				option = null;
 			}
