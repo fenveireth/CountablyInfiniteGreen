@@ -13,7 +13,11 @@ namespace FenLoader
 {
 	public class Patch
 	{
+		private const int VERSION = 2;
+
 		private static bool patched = false;
+
+		private static PriorityBarrier VercheckPopup;
 
 		public static void Main()
 		{
@@ -23,7 +27,7 @@ namespace FenLoader
 		private static void DoPatch(Scene s, LoadSceneMode m)
 		{
 			if (!patched) {
-				Console.WriteLine("Fen's patches enabled");
+				Console.WriteLine($"Fen's patches enabled - CIG v{VERSION}");
 				Harmony.CreateAndPatchAll(typeof(Patch));
 				patched = true;
 
@@ -75,13 +79,32 @@ namespace FenLoader
 			}
 		}
 
+		// Too loud, and callsite indication doesn't work
+		[HarmonyPatch(typeof(Debug), "Log", typeof(object))]
+		[HarmonyPrefix]
+		static bool LogHush(object message)
+		{
+			Console.WriteLine(message);
+			return false;
+		}
+
+		// Too loud, and callsite indication doesn't work
+		[HarmonyPatch(typeof(Debug), "LogError", typeof(object))]
+		[HarmonyPrefix]
+		static bool LogHush2(object message)
+		{
+			Console.WriteLine(message);
+			return false;
+		}
+
+
 		// Make our presence clearly known
 		// Should this be in 'GameVersion'
 		[HarmonyPatch(typeof(VersionToText), "Start")]
 		[HarmonyPrefix]
 		static bool ShowVersion(VersionToText __instance, bool ___putV)
 		{
-			__instance.GetComponent<TextMeshPro>().text = (___putV ? "v" : "") + GameVersion.VERSION + " + Fen's mod loader v1";
+			__instance.GetComponent<TextMeshPro>().text = (___putV ? "v" : "") + $"{GameVersion.VERSION} + cig v{VERSION}";
 			return false;
 		}
 
@@ -115,6 +138,19 @@ namespace FenLoader
 		static bool Restart(ProfileManager __instance)
 		{
 			__instance.startActive = true;
+
+			// And clone this popup box, creating a new one from scratch is annoying
+			var go = UnityEngine.Object.Instantiate(__instance.pb.gameObject).GetComponent<PriorityBarrier>();
+			foreach (Transform t in go.GetComponent<Transform>())
+			{
+				if (t.gameObject.name == "Input")
+					UnityEngine.Object.Destroy(t.gameObject);
+			}
+
+			VercheckPopup = go.GetComponent<PriorityBarrier>();
+			VercheckPopup.confirmationButtons ??= new GameObject();
+			VercheckPopup.continueButtons ??= new GameObject();
+
 			return true;
 		}
 
@@ -131,6 +167,19 @@ namespace FenLoader
 			}
 			__result = path;
 			return false;
+		}
+
+		[HarmonyPatch(typeof(XMLParser), "ReadModMeta")]
+		[HarmonyPostfix]
+		static void MetaVerCheck(ref Dictionary<string, string> __result)
+		{
+			int ver = 0;
+			if (__result.TryGetValue("targetLoaderVersion", out string sver))
+				int.TryParse(sver, out ver);
+			if (ver > VERSION) {
+				VercheckPopup.ShowPriorityText("Cannot load mod written for loader version " + ver + "\n" +
+						"Please check for an updated version of the loader");
+			}
 		}
 
 		// Custom backgrounds may get images from disk
