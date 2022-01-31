@@ -235,10 +235,12 @@ namespace FenLoader
 				dst.transition_type = transition;
 				dst.stat_check = ifs.ToArray();
 				dst.influences = sets.ToArray();
+				dst.effects_to_apply = effects.ToArray();
 				option.AddDestination(dst);
 				transition = "";
 				ifs.Clear();
 				sets.Clear();
+				effects.Clear();
 				break;
 
 			default:
@@ -266,6 +268,9 @@ namespace FenLoader
 
 			if (comp == 5)
 				return new EventOptionStatDependence(w[0], 1, 0, 0, "," + w[2]);
+
+			if (w[2][0] == '*')
+				return new EventOptionStatDependence(w[0], comp, 0, 0, w[2].Substring(1));
 
 			if (!float.TryParse(w[2], out float v))
 				Raise("invalid condition");

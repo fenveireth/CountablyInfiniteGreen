@@ -1,0 +1,37 @@
+% Test the riddle and math question mechanisms
+
+\event{fen_test_riddle}
+\image{base:G15_Meteorite}
+\sound{base:Audio/G15_Ambience G15Amb}
+\set{TEMP_G15_FATHOM = 1} \set{TEMP_METEOR_STAGE = 2}
+
+Answer one or two:
+
+\option <input : TEMP_R>
+\if{TEMP_R in one,two} \effect{CorrectSigil} \go{fen_test_riddle_m}
+\effect{IncorrectSigil} \go{fen_test_riddle}
+
+\event{fen_test_riddle_m}
+
+% Note how all \sets for the paragraph will be applied before the trapped read
+% on 'GENERATE_MATH' is triggered (evals of {} are done later)
+% so '5' will be read from 'TEMP_MATH_COMPLEXITY'
+% and this will set 'TEMP_MATH_ANSWER'
+{GENERATE_MATH}
+\set{TEMP_MATH_COMPLEXITY = 4}
+\set{timer = 20} \effect{Timer}
+
+(it's {TEMP_MATH_ANSWER})
+
+\option <input : TEMP_ANSWER>
+	\if{TEMP_ANSWER == *TEMP_MATH_ANSWER} \effect{correctSigil} \go{fen_test_riddle_ms}
+	\effect{incorrectSigil} \go{fen_test_riddle_mf}
+\option [TIMEOUT] \effect{incorrectSigil} \go{fen_test_riddle_mf}
+
+\event{fen_test_riddle_mf}
+Math Wrong
+
+\event{fen_test_riddle_ms}
+Math Right
+
+
