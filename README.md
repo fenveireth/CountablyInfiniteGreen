@@ -8,7 +8,7 @@ Functions as a run-time patch, based on UnityDoorstop and HarmonyX
 
 Reactivates unfinished / disabled game features:
 
-* Loading of user content from directories in `*_Data/Resources/Mods/` (see example mod for layout)
+* Loading of user content from directories in `*_Data/Resources/Mods/`
 * 'Profiles' menu to manage Savegames, select active mods, and manage mod load order
 * Ingame dev console
 
@@ -21,6 +21,14 @@ Load user content:
 Unrelated fixes:
 
 * The brightness slider in the settings menu is now actually center-notched
+
+## Authoring content
+
+An example mod is provided, with annotated source files demonstrating several
+features.
+
+The base game's "Main as a mod" is legit, all folders go through the same loader, so
+the files there may also be of value
 
 ## Building and Installation
 
