@@ -13,7 +13,8 @@
 % User sounds don't work yet.
 % Sound: second argument is channel name, to replace or stop it later
 \sound{base:Audio/DX7_Ambience DX7Amb}
-\effect{OpenTray 1} % second argument (optional) : delay
+% second arg is channel name as well, third is delay (both optionnal)
+\effect{OpenTray _ 1}
 
 This Sun, you have discovered a hidden outcropping of beautiful shinestone
 peeking though its mother-rock
@@ -128,7 +129,7 @@ your efforts this day.
 
 \event{dx7aa}
 \image{base:dx7_background}
-\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray 1}
+\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray _ 1}
 Returning to the shinestone-riddled mountain-wall, you see that there is a small
 amount left. Spend the day melting it loose and transporting it back to the den?
 
@@ -148,7 +149,7 @@ feel that the effort was well-spent.
 
 \event{dx7bb}
 \image{base:dx7_background}
-\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray 1}
+\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray _ 1}
 You could use your teeth and claws to rip a bit more of the shinestone out of
 this outcropping. It would take much effort, and probably a little pain. Will
 you?
