@@ -1,8 +1,10 @@
 % Test the riddle and math question mechanisms
+% Test custom music
 
 \event{fen_test_riddle}
 \image{base:G15_Meteorite}
-\sound{base:Audio/G15_Ambience G15Amb}
+%\sound{base:Audio/G15_Ambience G15Amb}
+\sound{FenTestRiddle G15Amb}
 \set{TEMP_G15_FATHOM = 1} \set{TEMP_METEOR_STAGE = 2}
 
 Answer one or two:
@@ -30,9 +32,11 @@ Answer one or two:
 \option [TIMEOUT] \effect{incorrectSigil} \go{fen_test_riddle_mf}
 
 \event{fen_test_riddle_mf}
+\soundStop{G15Amb}
 Math Wrong
 
 \event{fen_test_riddle_ms}
+\soundStop{G15Amb}
 Math Right
 
 

@@ -195,14 +195,21 @@ namespace FenLoader
 				break;
 			case "sound":
 				args = arg.Split();
+				string param = null;
 				if (args[0].StartsWith("base:"))
 					args[0] = args[0].Substring(5);
+				else {
+					param = "sample:" + args[0];
+					args[0] = "Audio";
+				}
 				chn = args.Length > 1 ? args[1] : "";
-				effects.Add(new FXEffect(args[0], 0, chn));
+				effects.Add(new FXEffect(args[0], 0, chn, false, param));
 				break;
 			case "soundStop":
 			case "effectStop":
-				effects.Add(new FXEffect("", 0, arg, true));
+				args = arg.Split();
+				delay = args.Length > 1 ? args[1] : "0";
+				effects.Add(new FXEffect("", float.Parse(delay), arg, true));
 				break;
 			// option level
 			case "option":

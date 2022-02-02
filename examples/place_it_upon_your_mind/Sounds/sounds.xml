@@ -1,0 +1,12 @@
+<sounds>
+	<sound>
+		<sound_name>FenTestRiddle</sound_name>
+		<path>million</path> <!-- references "million.ogg" -->
+		<type>MUSIC</type> <!-- in "MUSIC","LOOPING","SFX" -->
+		<volume>1</volume>
+		<!-- <pan/> in [-1; 1] -->
+		<pitch>1</pitch> <!-- unconveniently defaults to x0 speed, which is silence -->
+		<!-- <fade_in/> -->
+		<!-- <fade_out/> -->
+	</sound>
+</sounds>

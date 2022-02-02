@@ -41,6 +41,7 @@ namespace FenLoader
 				}
 
 				LoadMorePatches();
+				LoadUserSounds();
 			}
 		}
 
@@ -77,6 +78,13 @@ namespace FenLoader
 					}
 				}
 			}
+		}
+
+		// Game calls the scan too early, before Profile is set
+		private static void LoadUserSounds()
+		{
+			var wak = typeof(AudioManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+			wak.Invoke(AudioManager.Instance, null);
 		}
 
 		// Too loud, and callsite indication doesn't work
@@ -311,6 +319,15 @@ namespace FenLoader
 			}
 
 			__instance.StartCoroutine(fileWatch());
+			return true;
+		}
+
+		// otherwise AudioClip is gutted out right after query
+		[HarmonyPatch(typeof(AudioManager), "PlaySound", typeof(string), typeof(string), typeof(AudioTemplate))]
+		[HarmonyPrefix]
+		static bool NoReplaceAudioTemplate(ref AudioTemplate replace)
+		{
+			replace = null;
 			return true;
 		}
 	}
