@@ -105,7 +105,6 @@ namespace FenLoader
 			return false;
 		}
 
-
 		// Make our presence clearly known
 		// Should this be in 'GameVersion'
 		[HarmonyPatch(typeof(VersionToText), "Start")]
@@ -177,6 +176,7 @@ namespace FenLoader
 			return false;
 		}
 
+		// Prompt to update
 		[HarmonyPatch(typeof(XMLParser), "ReadModMeta")]
 		[HarmonyPostfix]
 		static void MetaVerCheck(ref Dictionary<string, string> __result)
@@ -328,6 +328,78 @@ namespace FenLoader
 		static bool NoReplaceAudioTemplate(ref AudioTemplate replace)
 		{
 			replace = null;
+			return true;
+		}
+
+		// more consistently handle 'GLOBAL_'
+		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeString")]
+		[HarmonyPrefix]
+		static bool GetGlobalStr(ref string __result, ref string flag_name)
+		{
+			flag_name = flag_name.ToUpper().Replace(" ", "_");
+			if (flag_name.StartsWith("GLOBAL_")) {
+				__result = GlobalAttributes.Instance.GetAttribute(flag_name.Substring(7)).ToString();
+				return false;
+			}
+
+			return true;
+		}
+
+		// more consistently handle 'GLOBAL_'
+		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeType")]
+		[HarmonyPrefix]
+		static bool GetGlobalType(ref Type __result, ref string flag_name)
+		{
+			flag_name = flag_name.ToUpper().Replace(" ", "_");
+			if (flag_name.StartsWith("GLOBAL_")) {
+				__result = GlobalAttributes.Instance.GetAttributeType(flag_name.Substring(7));
+				return false;
+			}
+
+			return true;
+		}
+
+		// more consistently handle 'GLOBAL_'
+		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeTypeAsString")]
+		[HarmonyPrefix]
+		static bool GetGlobalType(ref string __result, ref string flag_name)
+		{
+			flag_name = flag_name.ToUpper().Replace(" ", "_");
+			if (flag_name.StartsWith("GLOBAL_")) {
+				__result = GlobalAttributes.Instance.GetAttributeTypeAsString(flag_name.Substring(7));
+				return false;
+			}
+
+			return true;
+		}
+
+		// more consistently handle 'GLOBAL_'
+		[HarmonyPatch(typeof(PlayerAttributes), "SetAttribute", typeof(string), typeof(float), typeof(bool))]
+		[HarmonyPrefix]
+		static bool SetGlobal(ref float __result, ref string flag_name, ref float flag_value)
+		{
+			flag_name = flag_name.ToUpper().Replace(" ", "_");
+			if (flag_name.StartsWith("GLOBAL_")) {
+				__result = flag_value;
+				GlobalAttributes.Instance.SetAttribute(flag_name.Substring(7), flag_value);
+				return false;
+			}
+
+			return true;
+		}
+
+		// more consistently handle 'GLOBAL_'
+		[HarmonyPatch(typeof(PlayerAttributes), "SetAttribute", typeof(string), typeof(string))]
+		[HarmonyPrefix]
+		static bool SetGlobalStr(ref string __result, ref string flag_name, ref string flag_value)
+		{
+			flag_name = flag_name.ToUpper().Replace(" ", "_");
+			if (flag_name.StartsWith("GLOBAL_")) {
+				Console.WriteLine($"Cannot set value of {flag_name} to '{flag_value}': Globals must be numeric !");
+				__result = flag_value;
+				return false;
+			}
+
 			return true;
 		}
 	}
