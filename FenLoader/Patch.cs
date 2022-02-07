@@ -41,7 +41,6 @@ namespace FenLoader
 				}
 
 				LoadMorePatches();
-				LoadUserSounds();
 				ReloadTarot();
 			}
 		}
@@ -79,13 +78,6 @@ namespace FenLoader
 					}
 				}
 			}
-		}
-
-		// Game calls the scan too early, before Profile is set
-		private static void LoadUserSounds()
-		{
-			var wak = typeof(AudioManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
-			wak.Invoke(AudioManager.Instance, null);
 		}
 
 		// Game calls the scan too early, before patch is applied
