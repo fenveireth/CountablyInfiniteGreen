@@ -361,7 +361,7 @@ namespace FenLoader
 			evt = null;
 		}
 
-		public static void Load(EventHolder db, FileInfo fileinfo)
+		public static bool Load(EventHolder db, FileInfo fileinfo)
 		{
 			try
 			{
@@ -379,7 +379,10 @@ namespace FenLoader
 			{
 				Console.Error.WriteLine("Error while loading " + fileinfo.FullName);
 				Console.Error.WriteLine(e.Message);
+				return false;
 			}
+
+			return true;
 		}
 	}
 }

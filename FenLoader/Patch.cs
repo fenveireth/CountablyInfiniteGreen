@@ -17,7 +17,7 @@ namespace FenLoader
 
 		private static bool patched = false;
 
-		private static PriorityBarrier VercheckPopup;
+		private static PriorityBarrier ErrorPopup;
 
 		public static void Main()
 		{
@@ -35,15 +35,31 @@ namespace FenLoader
 				{
 					// Re-enable console
 					if (r.name == "DebugController")
-					{
 						r.SetActive(true);
-					}
+					else if (r.name == "HighPriorityBarrier")
+						CopyPopup(r);
 				}
 
 				LoadMorePatches();
 				ReloadTarot();
 			}
 		}
+
+		// creating a new one from scratch is annoying
+		private static void CopyPopup(GameObject orig)
+		{
+			var go = UnityEngine.Object.Instantiate(orig).GetComponent<PriorityBarrier>();
+			foreach (Transform t in go.GetComponent<Transform>())
+			{
+				if (t.gameObject.name == "Input")
+					UnityEngine.Object.Destroy(t.gameObject);
+			}
+
+			ErrorPopup = go.GetComponent<PriorityBarrier>();
+			ErrorPopup.confirmationButtons ??= new GameObject();
+			ErrorPopup.continueButtons ??= new GameObject();
+		}
+
 
 		private static HashSet<string> loaded = new HashSet<string>();
 
@@ -147,19 +163,6 @@ namespace FenLoader
 		static bool Restart(ProfileManager __instance)
 		{
 			__instance.startActive = true;
-
-			// And clone this popup box, creating a new one from scratch is annoying
-			var go = UnityEngine.Object.Instantiate(__instance.pb.gameObject).GetComponent<PriorityBarrier>();
-			foreach (Transform t in go.GetComponent<Transform>())
-			{
-				if (t.gameObject.name == "Input")
-					UnityEngine.Object.Destroy(t.gameObject);
-			}
-
-			VercheckPopup = go.GetComponent<PriorityBarrier>();
-			VercheckPopup.confirmationButtons ??= new GameObject();
-			VercheckPopup.continueButtons ??= new GameObject();
-
 			return true;
 		}
 
@@ -187,7 +190,7 @@ namespace FenLoader
 			if (__result.TryGetValue("targetLoaderVersion", out string sver))
 				int.TryParse(sver, out ver);
 			if (ver > VERSION) {
-				VercheckPopup.ShowPriorityText("Cannot load mod written for loader version " + ver + "\n" +
+				ErrorPopup.ShowPriorityText("Cannot load mod written for loader version " + ver + "\n" +
 						"Please check for an updated version of the loader");
 			}
 		}
@@ -268,10 +271,14 @@ namespace FenLoader
 				var dir = new DirectoryInfo(ResourceCalls.GetModsFolder() + "/" + mod + "/Events");
 				if (!dir.Exists)
 					continue;
+				bool ok = true;
 				foreach (var f in dir.GetFiles("*.txt", SearchOption.AllDirectories))
-					EventParser.Load(__instance, f);
+					ok &= EventParser.Load(__instance, f);
 				foreach (var f in dir.GetFiles("*.tex", SearchOption.AllDirectories))
-					EventParser.Load(__instance, f);
+					ok &= EventParser.Load(__instance, f);
+				if (!ok)
+					ErrorPopup.ShowPriorityText("Errors occured loading mod '" + mod + "'\n"
+							+ "Please check Player.log file");
 			}
 		}
 
