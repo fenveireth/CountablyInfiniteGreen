@@ -27,6 +27,9 @@ Unrelated fixes:
 An example mod is provided, with annotated source files demonstrating several
 features.
 
+The most valuable source of information during development is the Unity 'Player.log', in
+`%APPDATA%/LocalLow/Dreaming Door Studios`
+
 The base game's "Main as a mod" is legit, all folders go through the same loader, so
 the files there may also be of value
 
