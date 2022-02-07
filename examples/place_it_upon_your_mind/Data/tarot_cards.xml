@@ -1,0 +1,22 @@
+<tarot_cards>
+	<card>
+		<id>PETIT</id> <!-- defines unlock variable name: GLOBAL_TAROT_PETIT -->
+		<card_name>Petit</card_name>
+		<image>mod:petit.png</image>
+		<description>This devtest card loses to all other trumps</description>
+		<bonus_description>This takes points off the taker's contract minimum</bonus_description>
+		<!-- If empty, no locked entry appears in the cards menu -->
+		<hint>Don't give your opponents the opportunity to squeeze the trumps</hint>
+		<card_number>1</card_number>
+		<!-- Doesn't do anything. Menu order is mod load order + order of appearance in this file -->
+		<sort_order>1</sort_order>
+		<stat_bonuses> <!-- applied once on every new life -->
+			<influence>
+				<stat>POINTS</stat>
+				<type>add</type>
+				<multiplier>1</multiplier>
+				<offset>5</offset>
+			</influence>
+		</stat_bonuses>
+	</card>
+</tarot_cards>

@@ -42,6 +42,7 @@ namespace FenLoader
 
 				LoadMorePatches();
 				LoadUserSounds();
+				ReloadTarot();
 			}
 		}
 
@@ -85,6 +86,15 @@ namespace FenLoader
 		{
 			var wak = typeof(AudioManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
 			wak.Invoke(AudioManager.Instance, null);
+		}
+
+		// Game calls the scan too early, before patch is applied
+		private static void ReloadTarot()
+		{
+			var wak = typeof(TarotManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+			var man = TarotManager.Instance;
+			TarotManager.Instance = null;
+			wak.Invoke(man, null);
 		}
 
 		// Too loud, and callsite indication doesn't work
@@ -401,6 +411,52 @@ namespace FenLoader
 			}
 
 			return true;
+		}
+
+		// Path of mod directory, with trailing '/'
+		private static string InMod;
+
+		[HarmonyPatch(typeof(XMLParser), "XMLWebLoad")]
+		[HarmonyPrefix]
+		static bool SaveCurMod(ref string filePath)
+		{
+			filePath = filePath.Replace('\\', '/');
+			int cut = filePath.LastIndexOf("/Mods/");
+			int cut2 = filePath.IndexOf("/", cut + 6);
+			InMod = filePath.Substring(0, cut2 + 1);
+			return true;
+		}
+
+		// Custom get images from disk
+		private static Sprite LoadSpriteCurrentMod(string path)
+		{
+			if (!path.StartsWith("mod:"))
+				return Resources.Load<Sprite>(path);
+
+			path = path.Substring(4);
+			byte[] array = File.ReadAllBytes(InMod + path);
+			Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+			bool res = ImageConversion.LoadImage(val, array);
+			int height = val.height;
+			int width = val.width;
+			int size = Math.Max(width, height);
+			// Size for tarot cards
+			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f), 60f * size / 2048f);
+		}
+
+		// Custom images from disk
+		[HarmonyPatch(typeof(XMLParser), "GetTarotCardData")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> TarotResourceCall(IEnumerable<CodeInstruction> instrs)
+		{
+			foreach (var inst in instrs)
+			{
+				if (inst.operand?.ToString() == "UnityEngine.Sprite Load[Sprite](System.String)")
+				{
+					inst.operand = AccessTools.Method(typeof(Patch), "LoadSpriteCurrentMod", new Type[] { typeof(string) });
+				}
+				yield return inst;
+			}
 		}
 	}
 }
