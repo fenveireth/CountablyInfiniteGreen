@@ -41,6 +41,7 @@ namespace FenLoader
 				}
 
 				LoadMorePatches();
+				LoadUserSounds();
 				ReloadTarot();
 			}
 		}
@@ -94,6 +95,13 @@ namespace FenLoader
 					}
 				}
 			}
+		}
+
+		// First scan done before patch, but has bug, needs re-do
+		private static void LoadUserSounds()
+		{
+			var wak = typeof(AudioManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+			wak.Invoke(AudioManager.Instance, null);
 		}
 
 		// Game calls the scan too early, before patch is applied
@@ -456,6 +464,16 @@ namespace FenLoader
 				}
 				yield return inst;
 			}
+		}
+
+		// '.' instead of '\.' in RE messes up extension detection
+		[HarmonyPatch(typeof(AudioManager), "LoadFromFile")]
+		[HarmonyPrefix]
+		static bool DotOgg(ref string path)
+		{
+			if (!path.ToLower().EndsWith(".ogg"))
+				path += ".ogg";
+			return true;
 		}
 	}
 }
