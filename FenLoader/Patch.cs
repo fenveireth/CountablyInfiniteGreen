@@ -475,5 +475,14 @@ namespace FenLoader
 				path += ".ogg";
 			return true;
 		}
+
+		// Avoid freakout when an enabled mod is deleted
+		[HarmonyPatch(typeof(ChecksumXML), "VerifyChecksum")]
+		[HarmonyPrefix]
+		static bool NoCsum(ref bool __result)
+		{
+			__result = false;
+			return false;
+		}
 	}
 }
