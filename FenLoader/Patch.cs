@@ -359,6 +359,25 @@ namespace FenLoader
 			return true;
 		}
 
+		// Kludge to get control back on death cause screen
+		// I don't know if "Strings are true" behavior is actually used anywhere,
+		// but I'm not comfortable removing it for all variables
+		[HarmonyPatch(typeof(PlayerAttributes), "GetAttribute")]
+		[HarmonyPrefix]
+		static bool GetDeathStr(ref float __result, PlayerAttributes __instance, ref string flag_name)
+		{
+			if (flag_name.ToUpper() == "DEATH")
+			{
+				object va = __instance.attributes["DEATH"];
+				if (va is float f)
+					__result = f;
+				else
+					__result = float.NaN;
+				return false;
+			}
+			return true;
+		}
+
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeString")]
 		[HarmonyPrefix]
