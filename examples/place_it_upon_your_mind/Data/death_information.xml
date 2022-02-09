@@ -1,0 +1,17 @@
+<death_information>
+	<!-- possible death causes on the life count screen -->
+	<titles>
+		<title>
+			<id>Fall Death</id>
+			<message>There's fall damage in this game</message>
+			<requirements>
+				<!-- This system lets you do more sophisticated things than relying
+					on the events to consistently set DEATH like the base game does -->
+				<dependance>
+					<stat>DEATH</stat>
+					<min_stat>,devtest_falling</min_stat>
+				</dependance>
+			</requirements>
+		</title>
+	</titles>
+</death_information>

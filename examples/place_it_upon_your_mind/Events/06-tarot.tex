@@ -1,0 +1,47 @@
+% Test unlocking a custom tarot card
+% Demonstrate more advanced effect queueing
+% Demonstrate death message select
+
+% If you're testing this, remember you can't unlock a card twice. Reset the
+% variable to see the animation again
+
+\event{fen_test_tarot}
+\image{base:Promentory_Image}
+\sound{base:Audio/P4_Music P4Mus}
+\sound{base:Audio/P4_Ambience P4Amb}
+
+If you jump, you'll get a Tarot card
+
+\option Do a flip this time
+\set{TEMP_P4A_SELECTED = 1} \go{fen_test_tarot2}
+
+
+\event{fen_test_tarot2}
+
+Successful takeoff
+
+Gravity takes over
+\set{TEMP_FALL += 1} \soundStop{P4Mus} \sound{base:Audio/P4_Fall falling}
+
+% Using delays, you can queue several effect starts and stops on the same
+% paragraph, even for the same channels
+\option Use the ground to stop your fall
+\set{DAMAGE += 30}
+\set{TEMP_FALL = 0} \set{TEMP_FALL_POST += 1}
+\soundStop{falling} \soundStop{P4Amb}
+\effect{ScreenShakeInitializer shake} \sound{base:Audio/P4_Crash crash}
+\effectStop{shake .5} \effectStop{crash 3}
+\go{fen_test_tarot3}
+
+\event{fen_test_tarot3}
+Worth it
+
+\option /EndEvent
+% Because the card is unlocked with a \set instead of an \effect like the base
+% game does, you can't set the unlock animation chained on a timer like they do
+% The unlock animation blocks any other, and transitions, until done playing
+\set{GLOBAL_TAROT_PETIT = 1}
+% The base game uses numerics for DEATH. Please don't
+% This connects to the values / conditions in Data/death_information.xml
+\set{DEATH = devtest_falling}
+\transition{whiteout} \go{death}
