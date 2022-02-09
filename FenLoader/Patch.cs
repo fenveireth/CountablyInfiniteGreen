@@ -131,6 +131,16 @@ namespace FenLoader
 			return false;
 		}
 
+		// Too loud, and callsite indication doesn't work
+		[HarmonyPatch(typeof(Debug), "LogWarning", typeof(object))]
+		[HarmonyPrefix]
+		static bool LogHush3(object message)
+		{
+			Console.WriteLine(message);
+			return false;
+		}
+
+
 		// Make our presence clearly known
 		// Should this be in 'GameVersion'
 		[HarmonyPatch(typeof(VersionToText), "Start")]
@@ -327,6 +337,7 @@ namespace FenLoader
 								EventChanger.Instance.LoadBackgroundImage(cur);
 						}
 						catch (Exception e) {
+							ErrorPopup.ShowPriorityText("Error while reloading background files\nPlease check 'Player.log' file");
 							Console.Error.WriteLine(e);
 						}
 					}
