@@ -2,7 +2,7 @@
 	<card>
 		<id>PETIT</id> <!-- defines unlock variable name: GLOBAL_TAROT_PETIT -->
 		<card_name>Petit</card_name>
-		<image>mod:petit.png</image>
+		<image>mod:petit.png</image> <!-- give it aspect ratio of 0.677:1, to match the back of the card -->
 		<description>This devtest card loses to all other trumps</description>
 		<bonus_description>This takes points off the taker's contract minimum</bonus_description>
 		<!-- If empty, no locked entry appears in the cards menu -->

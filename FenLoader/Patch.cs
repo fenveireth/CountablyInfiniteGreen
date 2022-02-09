@@ -407,9 +407,23 @@ namespace FenLoader
 		static bool SetGlobal(ref float __result, ref string flag_name, ref float flag_value)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
-			if (flag_name.StartsWith("GLOBAL_")) {
+			if (flag_name.StartsWith("GLOBAL_"))
+			{
 				__result = flag_value;
-				GlobalAttributes.Instance.SetAttribute(flag_name.Substring(7), flag_value);
+				flag_name = flag_name.Substring(7);
+				if (flag_name.StartsWith("TAROT_") && flag_value > 0f)
+				{
+					string cardID = flag_name.Substring(6);
+					string cardName = TarotManager.Instance.cards.Find(c => c.cardID.ToUpper() == cardID)?.cardName;
+					if (cardName != null) {
+						// effect will set the variable internally
+						var anim = GameObject.Instantiate(Resources.Load<GameObject>("effects/Tarot_Get_Fool"));
+						anim.GetComponent<TarotGetManager>().cardName = cardName;
+					}
+				}
+				else
+					GlobalAttributes.Instance.SetAttribute(flag_name, flag_value);
+
 				return false;
 			}
 
@@ -459,7 +473,7 @@ namespace FenLoader
 			int width = val.width;
 			int size = Math.Max(width, height);
 			// Size for tarot cards
-			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f), 60f * size / 2048f);
+			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f), 62.1f * size / 2048f);
 		}
 
 		// Custom images from disk
