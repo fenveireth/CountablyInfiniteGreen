@@ -250,21 +250,28 @@ namespace FenLoader
 			filePath = filePath.Substring(ib + 5);
 			string[] s = filePath.Split('@');
 			GameObject prefab = Resources.Load<GameObject>(s[0]);
-			for (int isel = 1; isel < s.Length; ++isel)
+			if (prefab != null)
 			{
-				foreach (Transform tc in prefab.GetComponent<Transform>())
+				for (int isel = 1; isel < s.Length; ++isel)
 				{
-					if (tc.gameObject.name == s[isel]) {
-						prefab = tc.gameObject;
-						break;
+					foreach (Transform tc in prefab.GetComponent<Transform>())
+					{
+						if (tc.gameObject.name == s[isel]) {
+							prefab = tc.gameObject;
+							break;
+						}
 					}
 				}
+				SpriteRenderer r = prefab.GetComponent<SpriteRenderer>();
+				__result = r?.sprite;
+				if (r?.sprite == null) {
+					SpriteMeshInstance sm = prefab.GetComponent<SpriteMeshInstance>();
+					__result = sm?.spriteMesh?.sprite;
+				}
 			}
-			SpriteRenderer r = prefab.GetComponent<SpriteRenderer>();
-			__result = r?.sprite;
-			if (r?.sprite == null) {
-				SpriteMeshInstance sm = prefab.GetComponent<SpriteMeshInstance>();
-				__result = sm?.spriteMesh?.sprite;
+
+			if (__result == null) {
+				Console.WriteLine("Sprite was not found ! " + filePath);
 			}
 
 			return false;

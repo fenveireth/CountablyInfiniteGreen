@@ -1,0 +1,108 @@
+<!--
+	Example: rewrite graphics for wolf den
+	Demonstrates:
+	- Reversed layers for 'close shot' composition (floatiest layer back)
+	- detached layers for parallax
+	- conditions with fade-in, to fade during event
+-->
+<backgrounds>
+	<background>
+		<background_name>GW3_WolfCubs</background_name>
+		<base_image_width>1778</base_image_width>
+		<parallax_speed>.75</parallax_speed>
+		<!-- Specify the layers in reverse order -->
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Shadow@Gw-3_player_shadow</path>
+			<!-- float pos don't work yet -->
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup</path>
+			<transform>
+				<!--
+					Overpower the automatic setup of layers
+					The game adjusts them as to be 1 unit apart if you didn't move anything,
+					but this position only matters for visibility check
+					The Camera does Orthographic projection, and Movement only cares about layer index
+				-->
+				<position>
+					<z>10</z>
+				</position>
+			</transform>
+			<!-- Spirit lines don't work yet -->
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups</path>
+			<transform>
+				<position>
+					<z>20</z>
+				</position>
+			</transform>
+			<!-- Spirit lines don't work yet -->
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_background</path>
+			<transform>
+				<position>
+					<z>30</z>
+				</position>
+			</transform>
+		</entity>
+		<entity>
+			<!-- No way to force it to another color yet.
+				But really, just bring your own opaque background -->
+			<path>base:backgrounds/GW3_WolfCubs@Gw-3_guardian@Base</path>
+			<transform>
+				<scale>
+					<x>5</x>
+					<y>3</y>
+				</scale>
+			</transform>
+			<!-- this layer left alone by Movement logic -->
+			<parallax>
+				<movement>detach</movement>
+			</parallax>
+			<visibility>
+				<!-- If fade_time is 0 or not set, the variables are not watched for value change -->
+				<fade_time>.5</fade_time>
+				<appearance_groups>
+					<appearance_dependencies>
+						<uid/>
+						<dependence>
+							<stat>TEMP_GW3_DEN</stat>
+							<compare>1</compare>
+							<min>0</min>
+						</dependence>
+					</appearance_dependencies>
+				</appearance_groups>
+			</visibility>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@Gw-3_guardian</path>
+			<transform>
+				<position>
+					<y>150</y>
+				</position>
+				<scale>
+					<x>.7</x>
+					<y>.7</y>
+				</scale>
+			</transform>
+			<parallax>
+				<movement>detach</movement>
+			</parallax>
+			<visibility>
+				<fade_time>.5</fade_time>
+				<appearance_groups>
+					<appearance_dependencies>
+						<uid/>
+						<dependence>
+							<stat>TEMP_GW3_DEN</stat>
+							<compare>1</compare>
+							<min>0</min>
+						</dependence>
+					</appearance_dependencies>
+				</appearance_groups>
+			</visibility>
+		</entity>
+	</background>
+</backgrounds>

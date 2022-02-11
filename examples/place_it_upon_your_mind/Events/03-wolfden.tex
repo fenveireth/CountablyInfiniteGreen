@@ -12,7 +12,7 @@
 % doesn't want to introduce any
 
 \event{gw3_1}
-\image{base:GW3_WolfCubs}
+\image{GW3_WolfCubs}
 \sound{base:Audio/GW3_Ambience GW3Amb}
 
 You have found the Lair of the Clansingers deep in the heart of the Packlands.
@@ -32,7 +32,7 @@ will you proceed?
 	\hint{If only you could blend in with your surroudings...}
 	\go{gw3_1a}
 
-\option Challeng it honorably. \go{gw3_1b}
+\option Challenge it honorably. \go{gw3_1b}
 
 \option Leave this place, for now, and spend this Sun elsewhere.
 	% Undo the set from the map button
@@ -107,7 +107,7 @@ stands empty, their Treasure moved to a new location.
 
 \event{gw3_1s}
 % Must be reset: we are coming back from the fight area
-\image{base:GW3_WolfCubs}
+\image{GW3_WolfCubs}
 \sound{base:Audio/GW3_Ambience GW3Amb}
 The guardian is defeated, and attemps to escape. Will you allow it to leave?
 
@@ -170,9 +170,10 @@ And from our Giver-Creator's mouth, we receive warm flesh.</color>
 Into the Future; there can be no greater Treasure, or so they Sing.</color>
 \set{CLANSINGER_MASTERY += 3} % triggers knowledge sigil appearance
 
+
 What will you do?
 
-% Shows 'you have gained knwwledge' lines on the board.
+% Shows 'you have gained knowledge' lines on the board.
 % Unlike renown and elemental masteries, they are not automatically tracked
 /MasteryDisplay
 
