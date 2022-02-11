@@ -13,7 +13,7 @@ namespace FenLoader
 {
 	public class Patch
 	{
-		private const int VERSION = 2;
+		private const int VERSION = 3;
 
 		private static bool patched = false;
 

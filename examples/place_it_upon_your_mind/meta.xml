@@ -6,11 +6,12 @@
 	- At present, you cannot have more than 1 XML comment in this 'meta.xml'
 	  file (crashes the Profile menu)
 	- target loader version: the player is prompted to update the loader if a
-	  too-new mod is added
+		too-new mod is added.
+		Set this to the loader version you wrote and tested your mod against
 	-->
 	<title>Place It Upon Your Mind</title>
 	<author>Fenveireth</author>
 	<description>Accepting the gift of Truth lets the Spiritkeeper visibly wear it</description>
 	<version>1</version>
-	<targetLoaderVersion>2</targetLoaderVersion>
+	<targetLoaderVersion>3</targetLoaderVersion>
 </mod>
