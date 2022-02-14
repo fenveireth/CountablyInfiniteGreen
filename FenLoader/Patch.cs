@@ -535,5 +535,33 @@ namespace FenLoader
 			__result = false;
 			return false;
 		}
+
+		// Restore stat check prediction aura
+		[HarmonyPatch(typeof(EventXMLParser), "LoadDependence")]
+		[HarmonyPostfix]
+		static void OverNineThousand(ref EventOptionStatDependence __result)
+		{
+			// See, for example, "p1" from the prologue
+			// Aura only appears if operator is '>='
+			bool isStat = __result.stat == "FIRE" || __result.stat == "WATER"
+					|| __result.stat == "EARTH" || __result.stat == "AIR";
+			if (isStat && __result.compare == 0 && __result.stat_dependence_max > 100)
+				__result.compare = 3;
+		}
+
+		// Harden stat check prediction
+		[HarmonyPatch(typeof(GemUI), "DisplayRequiredElement")]
+		[HarmonyPrefix]
+		static bool FadeFight(GemUI __instance, bool activate, ref bool ___isFading)
+		{
+			// sort-of race condition gets every other cycle skipped
+			// Also, bit not reset if hovering from one option to another
+			// this is really confusing if there are several stat checks in a menu
+			if (activate && ___isFading) {
+				___isFading = false;
+				__instance.StopAllCoroutines();
+			}
+			return true;
+		}
 	}
 }

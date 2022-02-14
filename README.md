@@ -21,6 +21,7 @@ Load user content:
 Unrelated fixes:
 
 * The brightness slider in the settings menu is now actually center-notched
+* Prediction aura on stat checks sometimes not appearing
 
 ## Authoring content
 
