@@ -1,0 +1,63 @@
+<root>
+	<map_location>
+		<id>act1_jump</id> <!-- one namespace so you can override other mods -->
+		<map>heartbonevalley_map</map> <!-- name of map event -->
+		<!-- See map breakdown below -->
+		<zone_id>1</zone_id>
+		<!-- Connect with option in map event
+			which you will have to patch as well
+			If no matching option is found in the event, the icon will not appear
+		-->
+		<option_name>FenJump</option_name>
+		<!-- prefix with "mod:", or give name of builtin resource in 'provinces/mapuiassets' -->
+		<icon_path>mod:fen.png</icon_path>
+		<!--<icon_path>stone_circle_icon</icon_path>-->
+		<!-- Hex code starting with #, or one of
+			'red', 'blue', 'green', 'yellow', 'cyan', 'magenta', 'purple', 'grey',
+			'gray', 'lightred', 'lightblue', 'lightgreen', 'brown'
+			Defaults to white
+			Gets forced to grey if the event option is locked
+			No shimmer animation yet
+		-->
+		<icon_color>brown</icon_color>
+		<transform>
+			<position>
+				<x>-1.982</x>
+				<y>-0.111</y>
+			</position>
+			<scale> <!-- Needs different scales for each map -->
+				<x>0.45</x>
+				<y>0.5</y>
+			</scale>
+		</transform>
+	</map_location>
+	<!-- Map zone breakdown :
+	Act 1:
+		1: Your Lair
+		2: Fireflies
+		3: Herons
+		4: Exit
+		5: Darktooth
+		6: Labyrinth
+		7: Clay Pit
+		8: No-Tail Hive
+	Act 2:
+		1: Home Valley
+		2: Sacred Glen
+		3: to Empire of Reeds
+		4: to Skyward Reach
+		5: Four Tails (tree conflict event)
+		6: The Split (lost child event)
+		7: Packlands (wolf den event)
+		8: Deepwood (miniscs event)
+		9: River's edge (Warden)
+		10: The Barrows (bees event)
+		11: Twin Lakes (herb event)
+		12: Edge of the Great Blue
+	Act 3:
+		1: Your territory + Vantage + Tempest + Darktooth
+		2: No-Tail's land + Spaceship
+		3: Allmother's forest
+		4: Many-Times-Burned's island
+	-->
+</root>

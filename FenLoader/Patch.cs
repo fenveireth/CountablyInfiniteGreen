@@ -563,5 +563,50 @@ namespace FenLoader
 			}
 			return true;
 		}
+
+		// Custom map icons
+		private static Sprite LoadSpriteMap(string path)
+		{
+			if (!path.ToLower().EndsWith(".png"))
+				return Resources.Load<Sprite>(path);
+
+			byte[] array = File.ReadAllBytes(XMLParser.GetModsFolder() + path.Substring(4));
+			Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+			bool res = ImageConversion.LoadImage(val, array);
+			int height = val.height;
+			int width = val.width;
+			int size = Math.Max(width, height);
+			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f));
+		}
+
+		// Custom map icons
+		[HarmonyPatch(typeof(ZoneManager), "AddLocation")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> MapResourceCall(IEnumerable<CodeInstruction> instrs)
+		{
+			foreach (var inst in instrs)
+			{
+				if (inst.operand?.ToString() == "UnityEngine.Sprite Load[Sprite](System.String)")
+				{
+					inst.operand = AccessTools.Method(typeof(Patch), "LoadSpriteMap", new Type[] { typeof(string) });
+				}
+				yield return inst;
+			}
+		}
+
+		private static FieldInfo fogScale = typeof(LocationDisplayElement).GetField("ogScale", BindingFlags.NonPublic | BindingFlags.Instance);
+
+		// Fix scale for map icons
+		[HarmonyPatch(typeof(ZoneManager), "AddLocation")]
+		[HarmonyPostfix]
+		static void MapIconScale(ZoneManager __instance, ref MapLocationData.LocationData data)
+		{
+			// Scale in stored in Behavior on "Awake", which is only correct for prefabs
+			Transform lt = null;
+			foreach (Transform t in __instance.interactables.transform)
+				lt = t;
+			var ui = lt.GetComponent<LocationDisplayElement>();
+			fogScale.SetValue(ui, data.local_scale * 0.15f);
+		}
 	}
 }

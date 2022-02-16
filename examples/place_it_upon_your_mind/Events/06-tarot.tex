@@ -1,6 +1,14 @@
 % Test unlocking a custom tarot card
 % Demonstrate more advanced effect queueing
 % Demonstrate death message select
+% Demonstrate connecting an event to a map icon
+
+\eventModify{heartbonevalley_map}
+\option [FenJump]
+% \hidden{MY_CONDITION == 1} % If this test fails, icon is not placed on map
+% \if{MY_CONDITION == 1} % If this test fails, icon is greyed out and inactive
+\set{TEMP_P4A_SELECTED = 0} \set{TEMP_FALL = 0}
+\transition{fade} \go{fen_test_tarot}
 
 % If you're testing this, remember you can't unlock a card twice. Reset the
 % variable to see the animation again
