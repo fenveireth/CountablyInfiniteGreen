@@ -1,7 +1,6 @@
 using Anima2D;
 using HarmonyLib;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -17,7 +16,7 @@ namespace FenLoader
 
 		private static bool patched = false;
 
-		private static PriorityBarrier ErrorPopup;
+		internal static PriorityBarrier ErrorPopup;
 
 		public static void Main()
 		{
@@ -29,6 +28,7 @@ namespace FenLoader
 			if (!patched) {
 				Console.WriteLine($"Fen's patches enabled - CIG v{VERSION}");
 				Harmony.CreateAndPatchAll(typeof(Patch));
+				Harmony.CreateAndPatchAll(typeof(FileWatcher));
 				patched = true;
 
 				foreach (GameObject r in s.GetRootGameObjects())
@@ -116,7 +116,7 @@ namespace FenLoader
 		// Too loud, and callsite indication doesn't work
 		[HarmonyPatch(typeof(Debug), "Log", typeof(object))]
 		[HarmonyPrefix]
-		static bool LogHush(object message)
+		private static bool LogHush(object message)
 		{
 			Console.WriteLine(message);
 			return false;
@@ -125,7 +125,7 @@ namespace FenLoader
 		// Too loud, and callsite indication doesn't work
 		[HarmonyPatch(typeof(Debug), "LogError", typeof(object))]
 		[HarmonyPrefix]
-		static bool LogHush2(object message)
+		private static bool LogHush2(object message)
 		{
 			Console.WriteLine(message);
 			return false;
@@ -134,7 +134,7 @@ namespace FenLoader
 		// Too loud, and callsite indication doesn't work
 		[HarmonyPatch(typeof(Debug), "LogWarning", typeof(object))]
 		[HarmonyPrefix]
-		static bool LogHush3(object message)
+		private static bool LogHush3(object message)
 		{
 			Console.WriteLine(message);
 			return false;
@@ -145,7 +145,7 @@ namespace FenLoader
 		// Should this be in 'GameVersion'
 		[HarmonyPatch(typeof(VersionToText), "Start")]
 		[HarmonyPrefix]
-		static bool ShowVersion(VersionToText __instance, bool ___putV)
+		private static bool ShowVersion(VersionToText __instance, bool ___putV)
 		{
 			__instance.GetComponent<TextMeshPro>().text = (___putV ? "v" : "") + $"{GameVersion.VERSION} + cig v{VERSION}";
 			return false;
@@ -154,7 +154,7 @@ namespace FenLoader
 		// Fix gamma slider in system menu
 		[HarmonyPatch(typeof(UI_Slider), "OnMouseDrag")]
 		[HarmonyPostfix]
-		static void CenterNotch(UI_Slider __instance)
+		private static void CenterNotch(UI_Slider __instance)
 		{
 			if (Mathf.Abs(__instance.percent - __instance.snapTo) < 0.05f)
 			{
@@ -170,7 +170,7 @@ namespace FenLoader
 		// Prevent registering of achievements on Steam
 		[HarmonyPatch(typeof(SteamCalls), "SetAchievement")]
 		[HarmonyPrefix]
-		static bool NoAchievos()
+		private static bool NoAchievos()
 		{
 			return false;
 		}
@@ -178,7 +178,7 @@ namespace FenLoader
 		// Force presence of disabled mods menu
 		[HarmonyPatch(typeof(ProfileManager), "Start")]
 		[HarmonyPrefix]
-		static bool Restart(ProfileManager __instance)
+		private static bool Restart(ProfileManager __instance)
 		{
 			__instance.startActive = true;
 			return true;
@@ -187,7 +187,7 @@ namespace FenLoader
 		// Was broken for non-default profiles ?
 		[HarmonyPatch(typeof(SaveAndLoad), "GetSavesFolder")]
 		[HarmonyPrefix]
-		static bool FixProfileLoad(ref string __result, bool getBaseSaveFolder, Profile p)
+		private static bool FixProfileLoad(ref string __result, bool getBaseSaveFolder, Profile p)
 		{
 			string path = Application.persistentDataPath + "/Profiles/";
 			if (!getBaseSaveFolder)
@@ -202,7 +202,7 @@ namespace FenLoader
 		// Prompt to update
 		[HarmonyPatch(typeof(XMLParser), "ReadModMeta")]
 		[HarmonyPostfix]
-		static void MetaVerCheck(ref Dictionary<string, string> __result)
+		private static void MetaVerCheck(ref Dictionary<string, string> __result)
 		{
 			int ver = 0;
 			if (__result.TryGetValue("targetLoaderVersion", out string sver))
@@ -216,7 +216,7 @@ namespace FenLoader
 		// Custom backgrounds may get images from disk
 		[HarmonyPatch(typeof(BackgroundObjectManager), "Instantiate")]
 		[HarmonyTranspiler]
-		static IEnumerable<CodeInstruction> BGResourceCall(IEnumerable<CodeInstruction> instrs)
+		private static IEnumerable<CodeInstruction> BGResourceCall(IEnumerable<CodeInstruction> instrs)
 		{
 			foreach (var inst in instrs)
 			{
@@ -232,7 +232,7 @@ namespace FenLoader
 		// Re-load assets from mods with "base:" paths
 		[HarmonyPatch(typeof(ResourceCalls), "LoadSpriteFromImageFile")]
 		[HarmonyPrefix]
-		static bool LoadBack(ref Sprite __result, ref string filePath)
+		private static bool LoadBack(ref Sprite __result, ref string filePath)
 		{
 			int ib = filePath.IndexOf("base:");
 			if (ib == -1)
@@ -280,7 +280,7 @@ namespace FenLoader
 		// needed for above
 		[HarmonyPatch(typeof(ResourceCalls), "RemoveExtension")]
 		[HarmonyPrefix]
-		static bool NoExtension(ref string __result, string oldString)
+		private static bool NoExtension(ref string __result, string oldString)
 		{
 			__result = oldString;
 			return false;
@@ -289,7 +289,7 @@ namespace FenLoader
 		// natural event parser
 		[HarmonyPatch(typeof(EventHolder), "LoadAllEvents")]
 		[HarmonyPostfix]
-		static void LoadEventNatural(EventHolder __instance)
+		private static void LoadEventNatural(EventHolder __instance)
 		{
 			foreach (string mod in Profiles.currentProfile.modList)
 			{
@@ -307,60 +307,10 @@ namespace FenLoader
 			}
 		}
 
-		private static FieldInfo getCB = typeof(EventChanger).GetField("current_background", BindingFlags.NonPublic | BindingFlags.Instance);
-
-		// Background reloader
-		[HarmonyPatch(typeof(BackgroundDataHolder), "Start")]
-		[HarmonyPrefix]
-		static bool WatchXML(BackgroundDataHolder __instance)
-		{
-			IEnumerator fileWatch()
-			{
-				var timestamps = new Dictionary<string, DateTime>();
-				while (true)
-				{
-					bool ok = true;
-					foreach (string mod in Profiles.currentProfile.modList)
-					{
-						string mp = XMLParser.GetModsFolder() + '/' + mod + "/Backgrounds";
-						if (!Directory.Exists(mp))
-							continue;
-						foreach (string path in Directory.GetFiles(mp, "*.xml"))
-						{
-							var ts = File.GetLastWriteTimeUtc(path);
-							if (!timestamps.TryGetValue(path, out DateTime pts) || pts < ts) {
-								timestamps[path] = ts;
-								ok = false;
-							}
-						}
-					}
-
-					if (!ok)
-					{
-						try {
-							__instance.backgrounds = XMLParser.GetBackgroundData();
-							string cur = (string)getCB.GetValue(EventChanger.Instance);
-							if (cur != null)
-								EventChanger.Instance.LoadBackgroundImage(cur);
-						}
-						catch (Exception e) {
-							ErrorPopup.ShowPriorityText("Error while reloading background files\nPlease check 'Player.log' file");
-							Console.Error.WriteLine(e);
-						}
-					}
-
-					yield return new WaitForSeconds(2);
-				}
-			}
-
-			__instance.StartCoroutine(fileWatch());
-			return true;
-		}
-
 		// otherwise AudioClip is gutted out right after query
 		[HarmonyPatch(typeof(AudioManager), "PlaySound", typeof(string), typeof(string), typeof(AudioTemplate))]
 		[HarmonyPrefix]
-		static bool NoReplaceAudioTemplate(ref AudioTemplate replace)
+		private static bool NoReplaceAudioTemplate(ref AudioTemplate replace)
 		{
 			replace = null;
 			return true;
@@ -371,7 +321,7 @@ namespace FenLoader
 		// but I'm not comfortable removing it for all variables
 		[HarmonyPatch(typeof(PlayerAttributes), "GetAttribute")]
 		[HarmonyPrefix]
-		static bool GetDeathStr(ref float __result, PlayerAttributes __instance, ref string flag_name)
+		private static bool GetDeathStr(ref float __result, PlayerAttributes __instance, ref string flag_name)
 		{
 			if (flag_name.ToUpper() == "DEATH")
 			{
@@ -388,7 +338,7 @@ namespace FenLoader
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeString")]
 		[HarmonyPrefix]
-		static bool GetGlobalStr(ref string __result, ref string flag_name)
+		private static bool GetGlobalStr(ref string __result, ref string flag_name)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
 			if (flag_name.StartsWith("GLOBAL_")) {
@@ -402,7 +352,7 @@ namespace FenLoader
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeType")]
 		[HarmonyPrefix]
-		static bool GetGlobalType(ref Type __result, ref string flag_name)
+		private static bool GetGlobalType(ref Type __result, ref string flag_name)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
 			if (flag_name.StartsWith("GLOBAL_")) {
@@ -416,7 +366,7 @@ namespace FenLoader
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "GetAttributeTypeAsString")]
 		[HarmonyPrefix]
-		static bool GetGlobalType(ref string __result, ref string flag_name)
+		private static bool GetGlobalType(ref string __result, ref string flag_name)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
 			if (flag_name.StartsWith("GLOBAL_")) {
@@ -430,7 +380,7 @@ namespace FenLoader
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "SetAttribute", typeof(string), typeof(float), typeof(bool))]
 		[HarmonyPrefix]
-		static bool SetGlobal(ref float __result, ref string flag_name, ref float flag_value)
+		private static bool SetGlobal(ref float __result, ref string flag_name, ref float flag_value)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
 			if (flag_name.StartsWith("GLOBAL_"))
@@ -459,7 +409,7 @@ namespace FenLoader
 		// more consistently handle 'GLOBAL_'
 		[HarmonyPatch(typeof(PlayerAttributes), "SetAttribute", typeof(string), typeof(string))]
 		[HarmonyPrefix]
-		static bool SetGlobalStr(ref string __result, ref string flag_name, ref string flag_value)
+		private static bool SetGlobalStr(ref string __result, ref string flag_name, ref string flag_value)
 		{
 			flag_name = flag_name.ToUpper().Replace(" ", "_");
 			if (flag_name.StartsWith("GLOBAL_")) {
@@ -476,7 +426,7 @@ namespace FenLoader
 
 		[HarmonyPatch(typeof(XMLParser), "XMLWebLoad")]
 		[HarmonyPrefix]
-		static bool SaveCurMod(ref string filePath)
+		private static bool SaveCurMod(ref string filePath)
 		{
 			filePath = filePath.Replace('\\', '/');
 			int cut = filePath.LastIndexOf("/Mods/");
@@ -505,7 +455,7 @@ namespace FenLoader
 		// Custom images from disk
 		[HarmonyPatch(typeof(XMLParser), "GetTarotCardData")]
 		[HarmonyTranspiler]
-		static IEnumerable<CodeInstruction> TarotResourceCall(IEnumerable<CodeInstruction> instrs)
+		private static IEnumerable<CodeInstruction> TarotResourceCall(IEnumerable<CodeInstruction> instrs)
 		{
 			foreach (var inst in instrs)
 			{
@@ -520,7 +470,7 @@ namespace FenLoader
 		// '.' instead of '\.' in RE messes up extension detection
 		[HarmonyPatch(typeof(AudioManager), "LoadFromFile")]
 		[HarmonyPrefix]
-		static bool DotOgg(ref string path)
+		private static bool DotOgg(ref string path)
 		{
 			if (!path.ToLower().EndsWith(".ogg"))
 				path += ".ogg";
@@ -530,7 +480,7 @@ namespace FenLoader
 		// Avoid freakout when an enabled mod is deleted
 		[HarmonyPatch(typeof(ChecksumXML), "VerifyChecksum")]
 		[HarmonyPrefix]
-		static bool NoCsum(ref bool __result)
+		private static bool NoCsum(ref bool __result)
 		{
 			__result = false;
 			return false;
@@ -539,7 +489,7 @@ namespace FenLoader
 		// Restore stat check prediction aura
 		[HarmonyPatch(typeof(EventXMLParser), "LoadDependence")]
 		[HarmonyPostfix]
-		static void OverNineThousand(ref EventOptionStatDependence __result)
+		private static void OverNineThousand(ref EventOptionStatDependence __result)
 		{
 			// See, for example, "p1" from the prologue
 			// Aura only appears if operator is '>='
@@ -552,7 +502,7 @@ namespace FenLoader
 		// Harden stat check prediction
 		[HarmonyPatch(typeof(GemUI), "DisplayRequiredElement")]
 		[HarmonyPrefix]
-		static bool FadeFight(GemUI __instance, bool activate, ref bool ___isFading)
+		private static bool FadeFight(GemUI __instance, bool activate, ref bool ___isFading)
 		{
 			// sort-of race condition gets every other cycle skipped
 			// Also, bit not reset if hovering from one option to another
@@ -582,7 +532,7 @@ namespace FenLoader
 		// Custom map icons
 		[HarmonyPatch(typeof(ZoneManager), "AddLocation")]
 		[HarmonyTranspiler]
-		static IEnumerable<CodeInstruction> MapResourceCall(IEnumerable<CodeInstruction> instrs)
+		private static IEnumerable<CodeInstruction> MapResourceCall(IEnumerable<CodeInstruction> instrs)
 		{
 			foreach (var inst in instrs)
 			{
@@ -599,7 +549,7 @@ namespace FenLoader
 		// Fix scale for map icons
 		[HarmonyPatch(typeof(ZoneManager), "AddLocation")]
 		[HarmonyPostfix]
-		static void MapIconScale(ZoneManager __instance, ref MapLocationData.LocationData data)
+		private static void MapIconScale(ZoneManager __instance, ref MapLocationData.LocationData data)
 		{
 			// Scale in stored in Behavior on "Awake", which is only correct for prefabs
 			Transform lt = null;
