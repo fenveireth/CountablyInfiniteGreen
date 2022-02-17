@@ -1,3 +1,7 @@
+<!--
+	You may edit this file while the game is running
+	When it detects a change, it will reload it and reset the current scene
+-->
 <root>
 	<map_location>
 		<id>act1_jump</id> <!-- one namespace so you can override other mods -->
@@ -20,7 +24,8 @@
 			No shimmer animation yet
 		-->
 		<icon_color>brown</icon_color>
-		<transform>
+		<transform> <!-- same as in background files -->
+			<!-- Unconveniently, 0 is the center of the screen, not the selected map zone -->
 			<position>
 				<x>-1.982</x>
 				<y>-0.111</y>

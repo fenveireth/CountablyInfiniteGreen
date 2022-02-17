@@ -21,22 +21,33 @@ namespace FenLoader
 		private static void ThreadProc()
 		{
 			var timestamps = new Dictionary<string, DateTime>();
+
+			bool CheckFiles(string[] paths)
+			{
+				bool ok = true;
+				foreach (string path in paths)
+				{
+					var ts = File.GetLastWriteTimeUtc(path);
+					if (!timestamps.TryGetValue(path, out DateTime pts) || pts < ts) {
+						timestamps[path] = ts;
+						ok = false;
+					}
+				}
+				return ok;
+			}
+
 			while (true)
 			{
 				bool ok = true;
 				foreach (string mod in modlist)
 				{
 					string mp = XMLParser.GetModsFolder() + '/' + mod + "/Backgrounds";
-					if (!Directory.Exists(mp))
-						continue;
-					foreach (string path in Directory.GetFiles(mp, "*.xml"))
-					{
-						var ts = File.GetLastWriteTimeUtc(path);
-						if (!timestamps.TryGetValue(path, out DateTime pts) || pts < ts) {
-							timestamps[path] = ts;
-							ok = false;
-						}
-					}
+					if (Directory.Exists(mp))
+						ok &= CheckFiles(Directory.GetFiles(mp, "*.xml"));
+
+					mp = XMLParser.GetModsFolder() + '/' + mod + "/Data";
+					if (Directory.Exists(mp))
+						ok &= CheckFiles(Directory.GetFiles(mp, "map_locations.xml"));
 				}
 
 				if (!ok)
@@ -64,6 +75,7 @@ namespace FenLoader
 						needReload = false;
 						try {
 							__instance.backgrounds = XMLParser.GetBackgroundData();
+							MapLocationData.instance.locations = XMLParser.GetMapLocations();
 							string cur = (string)getCB.GetValue(EventChanger.Instance);
 							if (cur != null)
 								EventChanger.Instance.LoadBackgroundImage(cur);
