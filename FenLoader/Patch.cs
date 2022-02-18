@@ -229,6 +229,28 @@ namespace FenLoader
 			}
 		}
 
+		private static readonly Dictionary<(string, float?), Sprite> spriteCache = new Dictionary<(string, float?), Sprite>();
+
+		private static Sprite LoadSprite(string path, float? worldSize)
+		{
+			path = path.ToLower().Replace('\\', '/');
+			if (spriteCache.TryGetValue((path, worldSize), out Sprite res))
+				return res;
+
+			byte[] array = File.ReadAllBytes(path);
+			Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+			ImageConversion.LoadImage(val, array);
+			int height = val.height;
+			int width = val.width;
+			if (worldSize != null)
+				res = Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f), Math.Max(width, height) / worldSize.Value);
+			else
+				res = Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f));
+
+			spriteCache[(path, worldSize)] = res;
+			return res;
+		}
+
 		// Re-load assets from mods with "base:" paths
 		[HarmonyPatch(typeof(ResourceCalls), "LoadSpriteFromImageFile")]
 		[HarmonyPrefix]
@@ -238,12 +260,7 @@ namespace FenLoader
 			if (ib == -1)
 			{
 				filePath = ResourceCalls.GetModsFolder() + filePath.Substring(4);
-				byte[] array = File.ReadAllBytes(filePath);
-				Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-				bool res = ImageConversion.LoadImage(val, array);
-				int height = val.height;
-				int width = val.width;
-				__result = Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f));
+				__result = LoadSprite(filePath, null);
 				return false;
 			}
 
@@ -436,20 +453,13 @@ namespace FenLoader
 		}
 
 		// Custom get images from disk
-		private static Sprite LoadSpriteCurrentMod(string path)
+		private static Sprite LoadSpriteTarot(string path)
 		{
 			if (!path.StartsWith("mod:"))
 				return Resources.Load<Sprite>(path);
 
-			path = path.Substring(4);
-			byte[] array = File.ReadAllBytes(InMod + path);
-			Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-			bool res = ImageConversion.LoadImage(val, array);
-			int height = val.height;
-			int width = val.width;
-			int size = Math.Max(width, height);
-			// Size for tarot cards
-			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f), 62.1f * size / 2048f);
+			path = InMod + path.Substring(4);
+			return LoadSprite(path, 2048f / 62.1f);
 		}
 
 		// Custom images from disk
@@ -461,7 +471,7 @@ namespace FenLoader
 			{
 				if (inst.operand?.ToString() == "UnityEngine.Sprite Load[Sprite](System.String)")
 				{
-					inst.operand = AccessTools.Method(typeof(Patch), "LoadSpriteCurrentMod", new Type[] { typeof(string) });
+					inst.operand = AccessTools.Method(typeof(Patch), "LoadSpriteTarot", new Type[] { typeof(string) });
 				}
 				yield return inst;
 			}
@@ -520,13 +530,7 @@ namespace FenLoader
 			if (!path.ToLower().EndsWith(".png"))
 				return Resources.Load<Sprite>(path);
 
-			byte[] array = File.ReadAllBytes(XMLParser.GetModsFolder() + path.Substring(4));
-			Texture2D val = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-			bool res = ImageConversion.LoadImage(val, array);
-			int height = val.height;
-			int width = val.width;
-			int size = Math.Max(width, height);
-			return Sprite.Create(val, new Rect(0f, 0f, val.width, val.height), new Vector2(.5f, .5f));
+			return LoadSprite(XMLParser.GetModsFolder() + path.Substring(4), null);
 		}
 
 		// Custom map icons
