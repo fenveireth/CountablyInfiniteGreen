@@ -1,12 +1,14 @@
 project('launcher', 'c',
   version : '1',
   default_options : ['c_args=-municode', 'warning_level=2'])
+windows = import('windows')
 
 sh = find_program('sh')
 
 loader = library('loader', 'loader.c')
 
 embedded_objs = [
+  windows.compile_resources('launcher.rc', depend_files:['launcher.ico']),
   custom_target('loaderobj',
     depends: loader,
     output: 'libloader.o',
