@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Xml;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -214,18 +216,93 @@ namespace FenLoader
 		}
 
 		// Custom backgrounds may get images from disk
+		// Apply layer animations
 		[HarmonyPatch(typeof(BackgroundObjectManager), "Instantiate")]
 		[HarmonyTranspiler]
 		private static IEnumerable<CodeInstruction> BGResourceCall(IEnumerable<CodeInstruction> instrs)
 		{
 			foreach (var inst in instrs)
 			{
+				if (inst.operand?.ToString() == "Void Add(UnityEngine.GameObject)")
+				{
+					yield return inst;
+					yield return new CodeInstruction(OpCodes.Ldarg_1);
+					yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BackgroundObject), "backgroundName"));
+					yield return new CodeInstruction(OpCodes.Ldloc_S, 11);
+					yield return new CodeInstruction(OpCodes.Ldloc_1);
+					yield return new CodeInstruction(OpCodes.Ldc_I4_1);
+					yield return new CodeInstruction(OpCodes.Sub);
+					yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patch), "ApplyAnims", new Type[] { typeof(string), typeof(GameObject), typeof(int) }));
+					continue;
+				}
+
 				if (inst.operand?.ToString() == "UnityEngine.Sprite Load[Sprite](System.String)")
 				{
 					inst.operand = AccessTools.Method(typeof(ResourceCalls), "LoadSpriteFromImageFile", new Type[] { typeof(string) });
 				}
 
 				yield return inst;
+			}
+		}
+
+		// layer_index => [(component_name, [(param_name, param_value)]]
+		private static List<List<(string, List<(string, string)>)>> curBkgAnims = new List<List<(string, List<(string, string)>)>>();
+
+		// background ID => the above
+		private static Dictionary<string, List<List<(string, List<(string, string)>)>>> backgroundAnims = new Dictionary<string, List<List<(string, List<(string, string)>)>>>();
+
+		// store anim config
+		[HarmonyPatch(typeof(XMLParser), "GetBackgroundObject")]
+		[HarmonyPostfix]
+		private static void RegBkgnd(ref BackgroundObject __result)
+		{
+			backgroundAnims[__result.backgroundName] = curBkgAnims;
+			curBkgAnims = new List<List<(string, List<(string, string)>)>>();
+		}
+
+		// store anim config
+		[HarmonyPatch(typeof(XMLParser), "GetBackgroundEntity")]
+		[HarmonyPostfix]
+		private static void RegEntity(XmlNode parentNode)
+		{
+			var curEntityAnim = new List<(string, List<(string, string)>)>();
+			foreach (XmlNode cmpt in parentNode.ChildNodes)
+			{
+				if (!char.IsUpper(cmpt.Name[0]))
+					continue;
+				var mbrs = new List<(string, string)>();
+				foreach (XmlNode mbr in cmpt.ChildNodes) {
+					if (mbr.Name[0] == '#')
+						continue;
+					mbrs.Add((mbr.Name, mbr.InnerText));
+				}
+				curEntityAnim.Add((cmpt.Name, mbrs));
+			}
+			curBkgAnims.Add(curEntityAnim);
+		}
+
+		private static void ApplyAnims(string bkgname, GameObject layer, int layerNum)
+		{
+			try
+			{
+				if (!backgroundAnims.TryGetValue(bkgname, out var cmpts))
+					return;
+				foreach (var cmpt in cmpts[layerNum])
+				{
+					var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Item1));
+					foreach (var mbr in cmpt.Item2) {
+						object val = mbr.Item2;
+						if (int.TryParse((string)val, out int iv))
+							val = iv;
+						else if (float.TryParse((string)val, out float fv))
+							val = fv;
+						AccessTools.Field(c.GetType(), mbr.Item1).SetValue(c, val);
+					}
+				}
+			}
+			catch (Exception e) {
+				ErrorPopup.ShowPriorityText("Error while building scene\nPlease check 'Player.log' file");
+				Console.Error.WriteLine(e);
 			}
 		}
 

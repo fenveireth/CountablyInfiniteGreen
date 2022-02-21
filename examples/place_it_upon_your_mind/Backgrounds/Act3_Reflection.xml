@@ -21,9 +21,6 @@
 				</scale>
 			</transform>
 			<!--
-			<parallax>
-				<movement> <!- in "group","detach",none ->
-			</parallax>
 			<interaction>
 				<onclick>
 					<trigger/>
@@ -73,10 +70,15 @@
 			<parallax>
 				<movement>group</movement>
 			</parallax>
-			<!--
-				At present, you cannot specify special effet / animation
-				This includes the elemental mastery fade-in that should go here
-			-->
+			<!-- Anything that starts with upper-case letter is understood to be a layer animation component -->
+			<!-- PlayerColoration: set alpha based on raw stats, so there can be dragons of a different color -->
+			<PlayerColoration>
+				<stat>2</stat> <!-- 0-3 for fire,water,earth,air -->
+				<min>30</min> <!-- default to 30 -->
+				<max>100</max> <!-- default to 100 -->
+				<!-- additional boost/decrease if this stat is higher/lower than the others. Default to 0.2 -->
+				<percentageSuppressage>0.5</percentageSuppressage>
+			</PlayerColoration>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0004_air</path>
@@ -88,9 +90,14 @@
 					<x>0.46</x>
 					<y>0.46</y>
 				</scale>
-			</transform><parallax>
+			</transform>
+			<parallax>
 				<movement>group</movement>
 			</parallax>
+			<PlayerColoration>
+				<stat>3</stat>
+				<percentageSuppressage>.5</percentageSuppressage>
+			</PlayerColoration>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0003_water</path>
@@ -102,9 +109,14 @@
 					<x>0.46</x>
 					<y>0.46</y>
 				</scale>
-			</transform><parallax>
+			</transform>
+			<parallax>
 				<movement>group</movement>
 			</parallax>
+			<PlayerColoration>
+				<stat>1</stat>
+				<percentageSuppressage>.5</percentageSuppressage>
+			</PlayerColoration>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0006_base@F1-1-hilltop_0002_fire</path>
@@ -116,9 +128,14 @@
 					<x>0.46</x>
 					<y>0.46</y>
 				</scale>
-			</transform><parallax>
+			</transform>
+			<parallax>
 				<movement>group</movement>
 			</parallax>
+			<PlayerColoration>
+				<stat>0</stat>
+				<percentageSuppressage>.5</percentageSuppressage>
+			</PlayerColoration>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Act3_Reflection@F1-1-hilltop_0000_ground</path>
