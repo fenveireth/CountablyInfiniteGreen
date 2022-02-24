@@ -4,7 +4,7 @@ Mod and user content loader for "Golden Treasure - The Great Green"
 
 This wiki is aim to provide user-friendly steps for anyone without extensive knowledge of IT skills to navigate the mods.
 
-## How to install this Mod. (As a user)
+## How to install this Mod loader (As a user)
 
 1. Go to release page of the original master Github repository. ([Release link][release_link])
 
