@@ -410,6 +410,28 @@ namespace FenLoader
 			return true;
 		}
 
+		// '.' instead of '\.' in RE messes up extension detection
+		[HarmonyPatch(typeof(AudioManager), "LoadFromFile")]
+		[HarmonyPrefix]
+		private static bool DotOgg(ref string path)
+		{
+			if (!path.ToLower().EndsWith(".ogg"))
+				path += ".ogg";
+			return true;
+		}
+
+		// louder error
+		[HarmonyPatch(typeof(AudioManager), "LoadFromFile")]
+		[HarmonyFinalizer]
+		private static Exception OggAlert(Exception __exception)
+		{
+			if (__exception != null) {
+				Console.Error.WriteLine(__exception);
+				ErrorPopup.ShowPriorityText("Error while loading one or more sound files.\nPlease check Player.log file");
+			}
+			return null;
+		}
+
 		// Kludge to get control back on death cause screen
 		// I don't know if "Strings are true" behavior is actually used anywhere,
 		// but I'm not comfortable removing it for all variables
@@ -552,16 +574,6 @@ namespace FenLoader
 				}
 				yield return inst;
 			}
-		}
-
-		// '.' instead of '\.' in RE messes up extension detection
-		[HarmonyPatch(typeof(AudioManager), "LoadFromFile")]
-		[HarmonyPrefix]
-		private static bool DotOgg(ref string path)
-		{
-			if (!path.ToLower().EndsWith(".ogg"))
-				path += ".ogg";
-			return true;
 		}
 
 		// Avoid freakout when an enabled mod is deleted
