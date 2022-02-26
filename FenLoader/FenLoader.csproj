@@ -6,6 +6,7 @@
 		<LangVersion>8</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
+		<Reference Include="System.IO.Compression"/>
 		<PackageReference Include="HarmonyX" Version="2.8.0">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>

@@ -21,15 +21,11 @@ To add a mod content, copy the mod content intended for this game, into the mod 
 
 We will be using the included technical example "place it upon your mind" mod as an example for this guide.
 
-1. Obtain the folder, in our case from the [Release page](../releases) -> "place_it_upon_your_mind.zip"
+1. Obtain archive, in our case from the [Release page](../releases) -> "place_it_upon_your_mind.zip"
 
-2. The zip contains a single folder.
-
-3. Extract / place it into the Mod content folder like so:<br>
-![image](https://user-images.githubusercontent.com/100326716/155450285-009ac79e-cdcf-4eb5-a16c-c50ec5ec1864.png)
-
-4. A correctly installed mod has a 'meta.xml' file directly at the first level,
-	like 'Main' does
+2. Place zip into the Mod content folder like so:<br>
+It will be processed when the game is started<br>
+![image](./install-mod-folder.png)
 
 ## Managing Profiles
 

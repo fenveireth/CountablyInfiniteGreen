@@ -1,10 +1,15 @@
 <mod>
 	<!--
 	- No line breaks in description, or the whole thing gets replaced by
-	  a '...' for overflowing the box
-	- The 'version' tag doesn't do anything yet
+		a '...' for overflowing the box
+
 	- At present, you cannot have more than 1 XML comment in this 'meta.xml'
-	  file (crashes the Profile menu)
+		file (crashes the Profile menu)
+
+	- The auto-unzip install function triggers when this 'meta.xml' file differs
+	  between Zip and installed copy.
+		Using the 'version' tag for this when distributing newer copies is recommended
+
 	- target loader version: the player is prompted to update the loader if a
 		too-new mod is added.
 		Set this to the loader version you wrote and tested your mod against

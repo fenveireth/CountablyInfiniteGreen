@@ -23,6 +23,7 @@ namespace FenLoader
 		public static void Main()
 		{
 			SceneManager.sceneLoaded += DoPatch;
+			Install.StartDezip();
 		}
 
 		private static void DoPatch(Scene s, LoadSceneMode m)
@@ -31,6 +32,7 @@ namespace FenLoader
 				Console.WriteLine($"Fen's patches enabled - CIG v{VERSION}");
 				Harmony.CreateAndPatchAll(typeof(Patch));
 				Harmony.CreateAndPatchAll(typeof(FileWatcher));
+				Harmony.CreateAndPatchAll(typeof(Install));
 				patched = true;
 
 				foreach (GameObject r in s.GetRootGameObjects())
@@ -183,6 +185,7 @@ namespace FenLoader
 		private static bool Restart(ProfileManager __instance)
 		{
 			__instance.startActive = true;
+			Install.WaitForDezip();
 			return true;
 		}
 
