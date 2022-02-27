@@ -48,9 +48,12 @@
 			</transform>
 		</entity>
 		<entity>
-			<!-- No way to force it to another color yet.
-				But really, just bring your own opaque background -->
 			<path>base:backgrounds/GW3_WolfCubs@Gw-3_guardian@Base</path>
+			<color>
+				<r>0</r>
+				<g>0</g>
+				<b>0</b>
+			</color>
 			<transform>
 				<scale>
 					<x>5</x>

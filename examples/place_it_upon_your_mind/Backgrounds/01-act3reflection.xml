@@ -2,6 +2,14 @@
 	You may edit these files while the game is running
 	When it detects a change, it will reload them and reset the current scene
 -->
+<!--
+	Add Crown
+	Demonstrate base case
+	Demonstrate picking individual layers from base game
+	Demonstrate parallax regroup
+	Demonstrate condition for layer appearance
+	Demonstrate 'PlayerColoration'
+-->
 <backgrounds>
 	<background>
 		<background_name>Act3_Reflection</background_name>
@@ -48,7 +56,7 @@
 				</scale>
 			</transform>
 			<!--
-				At present, you cannot specify special effect / animation
+				At present, you cannot specify all special effect / animation
 				This includes rigging for tail sway that should go here
 			-->
 		</entity>

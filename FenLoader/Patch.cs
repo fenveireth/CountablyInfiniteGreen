@@ -248,11 +248,11 @@ namespace FenLoader
 			}
 		}
 
-		// layer_index => [(component_name, [(param_name, param_value)]]
-		private static List<List<(string, List<(string, string)>)>> curBkgAnims = new List<List<(string, List<(string, string)>)>>();
+		// by layer_index
+		private static List<List<XmlElement>> curBkgAnims = new List<List<XmlElement>>();
 
 		// background ID => the above
-		private static Dictionary<string, List<List<(string, List<(string, string)>)>>> backgroundAnims = new Dictionary<string, List<List<(string, List<(string, string)>)>>>();
+		private static Dictionary<string, List<List<XmlElement>>> backgroundAnims = new Dictionary<string, List<List<XmlElement>>>();
 
 		// store anim config
 		[HarmonyPatch(typeof(XMLParser), "GetBackgroundObject")]
@@ -260,7 +260,7 @@ namespace FenLoader
 		private static void RegBkgnd(ref BackgroundObject __result)
 		{
 			backgroundAnims[__result.backgroundName] = curBkgAnims;
-			curBkgAnims = new List<List<(string, List<(string, string)>)>>();
+			curBkgAnims = new List<List<XmlElement>>();
 		}
 
 		// store anim config
@@ -268,23 +268,55 @@ namespace FenLoader
 		[HarmonyPostfix]
 		private static void RegEntity(XmlNode parentNode)
 		{
-			var curEntityAnim = new List<(string, List<(string, string)>)>();
+			var curEntityAnim = new List<XmlElement>();
 			foreach (XmlNode cmpt in parentNode.ChildNodes)
 			{
-				if (!char.IsUpper(cmpt.Name[0]))
+				if (!char.IsUpper(cmpt.Name[0]) && cmpt.Name != "material" && cmpt.Name != "color")
 					continue;
-				var mbrs = new List<(string, string)>();
-				foreach (XmlNode mbr in cmpt.ChildNodes) {
-					if (mbr.Name[0] == '#')
-						continue;
-					mbrs.Add((mbr.Name, mbr.InnerText));
-				}
-				curEntityAnim.Add((cmpt.Name, mbrs));
+				curEntityAnim.Add((XmlElement)cmpt);
 			}
 			curBkgAnims.Add(curEntityAnim);
 		}
 
-		private static void ApplyAnims(string bkgname, GameObject layer, int layerNum)
+		static void XmlApply(object c, XmlElement t)
+		{
+			foreach (XmlNode m in t.ChildNodes)
+			{
+				if (m.Name[0] == '#')
+					continue;
+
+				var f = AccessTools.Field(c.GetType(), m.Name);
+				if (f.FieldType.IsClass) {
+					XmlApply(f.GetValue(c), (XmlElement)m);
+					continue;
+				}
+				object val = m.InnerText;
+				if (f.FieldType == typeof(int) || f.FieldType.IsEnum)
+					val = int.Parse((string)val);
+				else if (f.FieldType == typeof(float))
+					val = float.Parse((string)val);
+				else if (f.FieldType == typeof(bool))
+					val = bool.Parse((string)val);
+				else if (f.FieldType == typeof(Vector3))
+					val = XMLParser.XMLToVector3(m);
+				f.SetValue(c, val);
+			}
+		}
+
+		static Dictionary<string, Material> stdMaterials;
+
+		static void initStdMtl()
+		{
+			stdMaterials = new Dictionary<string, Material>() {
+				{"GlitterRotate", Resources.Load<GameObject>("backgrounds/d12_greatgreenentrance").transform.GetChild(0).GetChild(0).GetComponent<Renderer>().materials[0] },
+				{"Sprites-Default", Resources.Load<GameObject>("backgrounds/Act2_Reflection").transform.GetChild(0).GetComponent<Renderer>().materials[0] },
+			};
+		}
+
+		static MethodInfo sla = typeof(ShineLinear).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+		static MethodInfo spa = typeof(ShinePulse).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+
+		static void ApplyAnims(string bkgname, GameObject layer, int layerNum)
 		{
 			try
 			{
@@ -292,15 +324,43 @@ namespace FenLoader
 					return;
 				foreach (var cmpt in cmpts[layerNum])
 				{
-					var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Item1));
-					foreach (var mbr in cmpt.Item2) {
-						object val = mbr.Item2;
-						if (int.TryParse((string)val, out int iv))
-							val = iv;
-						else if (float.TryParse((string)val, out float fv))
-							val = fv;
-						AccessTools.Field(c.GetType(), mbr.Item1).SetValue(c, val);
+					if (cmpt.Name == "material")
+					{
+						if (stdMaterials == null)
+							initStdMtl();
+
+						if (!stdMaterials.TryGetValue(cmpt.InnerText, out Material mat))
+							throw new Exception("unknown sprite material: " + cmpt.InnerText);
+						var rdr = layer.GetComponent<Renderer>();
+						rdr.material = new Material(mat);
+						continue;
 					}
+					if (cmpt.Name == "color")
+					{
+						var rdr = layer.GetComponent<SpriteRenderer>();
+						var uiobj = layer.GetComponent<UI_Object>();
+						Color color = Color.black;
+						foreach (XmlNode channel in cmpt.ChildNodes) {
+							switch (channel.Name) {
+								case "r": color.r = float.Parse(channel.InnerXml); break;
+								case "g": color.g = float.Parse(channel.InnerXml); break;
+								case "b": color.b = float.Parse(channel.InnerXml); break;
+								case "a": color.a = float.Parse(channel.InnerXml); break;
+							}
+						}
+						rdr.color = color;
+						if (uiobj != null)
+							uiobj.toColor = color;
+						continue;
+					}
+
+					var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Name));
+					XmlApply(c, cmpt);
+
+					if (c is ShineLinear sl)
+						sla.Invoke(sl, null);
+					else if (c is ShinePulse sp)
+						spa.Invoke(sp, null);
 				}
 			}
 			catch (Exception e) {
@@ -369,6 +429,7 @@ namespace FenLoader
 
 			if (__result == null) {
 				Console.WriteLine("Sprite was not found ! " + filePath);
+				ErrorPopup.ShowPriorityText("Error occured while loading scene\nSee Player.log file");
 			}
 
 			return false;

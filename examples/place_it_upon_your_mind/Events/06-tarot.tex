@@ -5,16 +5,16 @@
 
 \eventModify{heartbonevalley_map}
 \option [FenJump]
-% \hidden{MY_CONDITION == 1} % If this test fails, icon is not placed on map
-% \if{MY_CONDITION == 1} % If this test fails, icon is greyed out and inactive
-\set{TEMP_P4A_SELECTED = 0} \set{TEMP_FALL = 0}
+% \hidden{MY_VARIABLE == 1} % If this test fails, icon is not placed on map
+% \if{MY_VARIABLE == 1} % If this test fails, icon is greyed out and inactive
+\set{TEMP_P4A_SELECTED = 0}
 \transition{fade} \go{fen_test_tarot}
 
 % If you're testing this, remember you can't unlock a card twice. Reset the
 % variable to see the animation again
 
 \event{fen_test_tarot}
-\image{base:Promentory_Image}
+\image{Promentory_Image}
 \sound{base:Audio/P4_Music P4Mus}
 \sound{base:Audio/P4_Ambience P4Amb}
 
@@ -29,13 +29,13 @@ If you jump, you'll get a Tarot card
 Successful takeoff
 
 Gravity takes over
-\set{TEMP_FALL += 1} \soundStop{P4Mus} \sound{base:Audio/P4_Fall falling}
+\set{TEMP_FALL = 1} \soundStop{P4Mus} \sound{base:Audio/P4_Fall falling}
 
 % Using delays, you can queue several effect starts and stops on the same
 % paragraph, even for the same channels
 \option Use the ground to stop your fall
 \set{DAMAGE += 30}
-\set{TEMP_FALL = 0} \set{TEMP_FALL_POST += 1}
+\set{TEMP_FALL = 2}
 \soundStop{falling} \soundStop{P4Amb}
 \effect{ScreenShakeInitializer shake} \sound{base:Audio/P4_Crash crash}
 \effectStop{shake .5} \effectStop{crash 3}
