@@ -78,12 +78,12 @@ namespace FenLoader
 				{
 					if (loaded.Contains(path))
 					{
-						Console.WriteLine("  - found, but already loaded");
+						Console.WriteLine("- found, but already loaded");
 					}
 
 					try
 					{
-						Console.WriteLine("  - Applying patches");
+						Console.WriteLine("- Applying patches");
 						Assembly dll = Assembly.LoadFile(path);
 						foreach (Type t in dll.GetTypes())
 						{
@@ -278,6 +278,19 @@ namespace FenLoader
 			curBkgAnims.Add(curEntityAnim);
 		}
 
+		static Vector2 XmlToVec2(XmlNode v)
+		{
+			Vector2 res = Vector2.zero;
+			foreach (XmlNode c in v.ChildNodes)
+			{
+				switch (c.Name) {
+					case "x": res.x = float.Parse(c.InnerText); break;
+					case "y": res.y = float.Parse(c.InnerText); break;
+				}
+			}
+			return res;
+		}
+
 		static void XmlApply(object c, XmlElement t)
 		{
 			foreach (XmlNode m in t.ChildNodes)
@@ -297,6 +310,8 @@ namespace FenLoader
 					val = float.Parse((string)val);
 				else if (f.FieldType == typeof(bool))
 					val = bool.Parse((string)val);
+				else if (f.FieldType == typeof(Vector2))
+					val = XmlToVec2(m);
 				else if (f.FieldType == typeof(Vector3))
 					val = XMLParser.XMLToVector3(m);
 				f.SetValue(c, val);
@@ -308,9 +323,61 @@ namespace FenLoader
 		static void initStdMtl()
 		{
 			stdMaterials = new Dictionary<string, Material>() {
+				{"Clouds_Mat", Resources.Load<GameObject>("backgrounds/Promentory_Image").transform.GetChild(12).GetComponent<Renderer>().materials[0] },
 				{"GlitterRotate", Resources.Load<GameObject>("backgrounds/d12_greatgreenentrance").transform.GetChild(0).GetChild(0).GetComponent<Renderer>().materials[0] },
 				{"Sprites-Default", Resources.Load<GameObject>("backgrounds/Act2_Reflection").transform.GetChild(0).GetComponent<Renderer>().materials[0] },
 			};
+		}
+
+		static Mesh stdQuad;
+
+		static void Make3D(GameObject g)
+		{
+			if (stdQuad == null)
+			{
+				stdQuad = new Mesh();
+				stdQuad.vertices = new Vector3[]
+				{
+					new Vector3(-.5f, -.5f, 0),
+					new Vector3(+.5f, -.5f, 0),
+					new Vector3(-.5f, +.5f, 0),
+					new Vector3(+.5f, +.5f, 0)
+				};
+
+				stdQuad.triangles = new int[]
+				{
+					0, 2, 1,
+					2, 3, 1
+				};
+
+				stdQuad.normals = new Vector3[]
+				{
+					-Vector3.forward,
+					-Vector3.forward,
+					-Vector3.forward,
+					-Vector3.forward
+				};
+
+				stdQuad.uv = new Vector2[4]
+				{
+					new Vector2(0, 0),
+					new Vector2(1, 0),
+					new Vector2(0, 1),
+					new Vector2(1, 1)
+				};
+			}
+
+			if (stdMaterials == null)
+				initStdMtl();
+
+			var spriteRdr = g.GetComponent<SpriteRenderer>();
+			// not all shaders honor texture offsets
+			var mtl = new Material(stdMaterials["Clouds_Mat"]);
+			mtl.SetTexture("_MainTex", spriteRdr.sprite.texture);
+			Component.DestroyImmediate(spriteRdr);
+			var rdr = g.AddComponent<MeshRenderer>();
+			rdr.material = mtl;
+			g.AddComponent<MeshFilter>().mesh = stdQuad;
 		}
 
 		static MethodInfo sla = typeof(ShineLinear).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -361,6 +428,12 @@ namespace FenLoader
 						sla.Invoke(sl, null);
 					else if (c is ShinePulse sp)
 						spa.Invoke(sp, null);
+					else if (c is TextureLoopScroll tl) {
+						// Just changing the material is enough to make it move, but then
+						// there's still a hard-mask on un-scrolled texture alpha.
+						// Stick to the way the base game does it for now
+						Make3D(layer);
+					}
 				}
 			}
 			catch (Exception e) {

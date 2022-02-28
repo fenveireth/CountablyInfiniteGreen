@@ -15,19 +15,28 @@
 		</entity>
 		<entity>
 			<path>base:backgrounds/Promentory_Image@clouds</path>
+			<!-- TextureLoopScroll is one of the effects that requires a conversion
+				to 3D Quad, which need a x10 scale -->
 			<transform>
 				<scale>
 					<x>80</x>
 					<y>43</y>
 				</scale>
 			</transform>
+			<TextureLoopScroll>
+				<horSpeeds>
+					<x>-.00275</x>
+				</horSpeeds>
+				<vertSpeeds>
+					<x>0</x>
+				</vertSpeeds>
+			</TextureLoopScroll>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Promentory_Image@promentory_valley</path>
 		</entity>
 		<entity>
 			<path>base:backgrounds/Promentory_Image@promentory_sunspirit</path>
-			<!-- at present, no way to force to yellow -->
 			<material>GlitterRotate</material>
 			<color>
 				<r>1</r>
