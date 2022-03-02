@@ -4,6 +4,7 @@
 	- Reversed layers for 'close shot' composition (floatiest layer back)
 	- detached layers for parallax
 	- conditions with fade-in, to fade during event
+	- Texture-driven fades with 'DissolveFadeController'
 -->
 <backgrounds>
 	<background>
@@ -16,7 +17,8 @@
 			<!-- float pos don't work yet -->
 		</entity>
 		<entity>
-			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup</path>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup@Gw-3_front_halo</path>
+			<!-- DissolveFadeController will reset material to 'DissolveFade' -->
 			<transform>
 				<!--
 					Overpower the automatic setup of layers
@@ -28,16 +30,186 @@
 					<z>10</z>
 				</position>
 			</transform>
-			<!-- Spirit lines don't work yet -->
+			<DissolveFadeController>
+				<!-- At present, cannot specify custom curves for pulse -->
+				<!-- color defaults to White -->
+				<color>
+					<r>1</r>
+					<g>1</g>
+					<b>1</b>
+					<a>0.7490196</a>
+				</color>
+				<width>0.5</width> <!-- of ramp during sweep, defaults to 1-->
+				<bloom>1</bloom> <!-- gain, defaults to 1 -->
+				<minAlpha>0</minAlpha> <!-- defaults to 0 -->
+				<loopFade>false</loopFade>
+				<dissolveTexture>img/gradient_up.png</dissolveTexture>
+				<duration>11</duration>
+				<delay>3</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>0</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseOffsetSpeed>
+					<x>0</x>
+					<y>-0.5</y>
+				</noiseOffsetSpeed>
+				<noiseSize>1</noiseSize>
+			</DissolveFadeController>
 		</entity>
 		<entity>
-			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups</path>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup@Gw-3_front_aura</path>
+			<transform>
+				<position>
+					<z>10</z>
+				</position>
+			</transform>
+			<DissolveFadeController>
+				<minAlpha>.2</minAlpha>
+				<dissolveTexture>img/circle_fade_in.png</dissolveTexture>
+				<duration>9</duration>
+				<delay>2</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>0</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseSize>1</noiseSize>
+			</DissolveFadeController>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup</path>
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<transform>
+				<position>
+					<z>10</z>
+				</position>
+			</transform>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup@Gw-3_eye_shine</path>
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<transform>
+				<position>
+					<z>10</z>
+				</position>
+			</transform>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup@Gw-3_front_spirit_lines</path>
+			<transform>
+				<position>
+					<z>10</z>
+				</position>
+			</transform>
+			<DissolveFadeController>
+				<dissolveTexture>img/gradient_up.png</dissolveTexture>
+				<duration>12</duration>
+				<delay>2</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>5</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseOffsetSpeed>
+					<x>0</x>
+					<y>-0.5</y>
+				</noiseOffsetSpeed>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseSize>1</noiseSize>
+			</DissolveFadeController>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups@Gw-3_back_aura</path>
 			<transform>
 				<position>
 					<z>20</z>
 				</position>
 			</transform>
-			<!-- Spirit lines don't work yet -->
+			<DissolveFadeController>
+				<minAlpha>0.2</minAlpha>
+				<dissolveTexture>img/circle_fade_in.png</dissolveTexture>
+				<duration>9</duration>
+				<delay>4</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>0</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseSize>0.5</noiseSize>
+			</DissolveFadeController>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups</path>
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<transform>
+				<position>
+					<z>20</z>
+				</position>
+			</transform>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups@Gw-3_back_spirit_lines</path>
+			<transform>
+				<position>
+					<z>20</z>
+				</position>
+			</transform>
+			<DissolveFadeController>
+				<dissolveTexture>img/gradient_up.png</dissolveTexture>
+				<duration>12</duration>
+				<delay>7</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>5</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseOffsetSpeed>
+					<x>0</x>
+					<y>-0.5</y>
+				</noiseOffsetSpeed>
+				<noiseSize>1</noiseSize>
+			</DissolveFadeController>
+		</entity>
+		<entity>
+			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_back_pups@Gw-3_back_halos</path>
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<transform>
+				<position>
+					<z>20</z>
+				</position>
+			</transform>
+			<DissolveFadeController>
+				<!-- At present, cannot specify custom curves for pulse -->
+				<color>
+					<r>1</r>
+					<g>1</g>
+					<b>1</b>
+					<a>.749</a>
+				</color>
+				<width>.5</width>
+				<dissolveTexture>img/gradient-up.png</dissolveTexture>
+				<duration>11</duration>
+				<delay>5</delay>
+				<randomDelayMin>0</randomDelayMin>
+				<randomDelayMax>0</randomDelayMax>
+				<addRandomDelayOnStart>false</addRandomDelayOnStart>
+				<noiseTexture>img/2d_noise.png</noiseTexture>
+				<noiseStrength>0.5</noiseStrength>
+				<noiseOffsetSpeed>
+					<x>0</x>
+					<y>-0.5</y>
+				</noiseOffsetSpeed>
+				<noiseSize>1</noiseSize>
+			</DissolveFadeController>
 		</entity>
 		<entity>
 			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_background</path>
@@ -48,6 +220,7 @@
 			</transform>
 		</entity>
 		<entity>
+			<!-- A white square, to block view -->
 			<path>base:backgrounds/GW3_WolfCubs@Gw-3_guardian@Base</path>
 			<color>
 				<r>0</r>

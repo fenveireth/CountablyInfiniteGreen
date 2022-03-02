@@ -251,15 +251,15 @@ namespace FenLoader
 		// by layer_index
 		private static List<List<XmlElement>> curBkgAnims = new List<List<XmlElement>>();
 
-		// background ID => the above
-		private static Dictionary<string, List<List<XmlElement>>> backgroundAnims = new Dictionary<string, List<List<XmlElement>>>();
+		// background ID => (the above, mod name)
+		private static Dictionary<string, (List<List<XmlElement>>, string)> backgroundAnims = new Dictionary<string, (List<List<XmlElement>>, string)>();
 
 		// store anim config
 		[HarmonyPatch(typeof(XMLParser), "GetBackgroundObject")]
 		[HarmonyPostfix]
-		private static void RegBkgnd(ref BackgroundObject __result)
+		private static void RegBkgnd(ref BackgroundObject __result, string modName)
 		{
-			backgroundAnims[__result.backgroundName] = curBkgAnims;
+			backgroundAnims[__result.backgroundName] = (curBkgAnims, modName);
 			curBkgAnims = new List<List<XmlElement>>();
 		}
 
@@ -291,7 +291,21 @@ namespace FenLoader
 			return res;
 		}
 
-		static void XmlApply(object c, XmlElement t)
+		static Color XmlToColor(XmlNode v)
+		{
+			Color color = Color.black;
+			foreach (XmlNode channel in v.ChildNodes) {
+				switch (channel.Name) {
+					case "r": color.r = float.Parse(channel.InnerXml); break;
+					case "g": color.g = float.Parse(channel.InnerXml); break;
+					case "b": color.b = float.Parse(channel.InnerXml); break;
+					case "a": color.a = float.Parse(channel.InnerXml); break;
+				}
+			}
+			return color;
+		}
+
+		static void XmlApply(object c, XmlElement t, string modName)
 		{
 			foreach (XmlNode m in t.ChildNodes)
 			{
@@ -299,10 +313,12 @@ namespace FenLoader
 					continue;
 
 				var f = AccessTools.Field(c.GetType(), m.Name);
-				if (f.FieldType.IsClass) {
-					XmlApply(f.GetValue(c), (XmlElement)m);
+
+				if (f.FieldType.IsClass && f.FieldType != typeof(Texture2D)) {
+					XmlApply(f.GetValue(c), (XmlElement)m, modName);
 					continue;
 				}
+
 				object val = m.InnerText;
 				if (f.FieldType == typeof(int) || f.FieldType.IsEnum)
 					val = int.Parse((string)val);
@@ -314,6 +330,12 @@ namespace FenLoader
 					val = XmlToVec2(m);
 				else if (f.FieldType == typeof(Vector3))
 					val = XMLParser.XMLToVector3(m);
+				else if (f.FieldType == typeof(Color))
+					val = XmlToColor(m);
+				else if (f.FieldType == typeof(Texture2D)) {
+					var sprite = LoadSprite(XMLParser.GetModsFolder() + "/" + modName + "/" + val, null);
+					val = sprite.texture;
+				}
 				f.SetValue(c, val);
 			}
 		}
@@ -324,9 +346,21 @@ namespace FenLoader
 		{
 			stdMaterials = new Dictionary<string, Material>() {
 				{"Clouds_Mat", Resources.Load<GameObject>("backgrounds/Promentory_Image").transform.GetChild(12).GetComponent<Renderer>().materials[0] },
+				{"DissolveFade", Resources.Load<GameObject>("backgrounds/d13_twist").transform.GetChild(2).GetChild(0).GetChild(1).GetComponent<Renderer>().materials[0] },
 				{"GlitterRotate", Resources.Load<GameObject>("backgrounds/d12_greatgreenentrance").transform.GetChild(0).GetChild(0).GetComponent<Renderer>().materials[0] },
 				{"Sprites-Default", Resources.Load<GameObject>("backgrounds/Act2_Reflection").transform.GetChild(0).GetComponent<Renderer>().materials[0] },
 			};
+		}
+
+		static void SetMtl(GameObject g, string m)
+		{
+			if (stdMaterials == null)
+				initStdMtl();
+
+			if (!stdMaterials.TryGetValue(m, out Material mat))
+				throw new Exception("unknown sprite material: " + m);
+			var rdr = g.GetComponent<Renderer>();
+			rdr.material = new Material(mat);
 		}
 
 		static Mesh stdQuad;
@@ -382,47 +416,35 @@ namespace FenLoader
 
 		static MethodInfo sla = typeof(ShineLinear).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
 		static MethodInfo spa = typeof(ShinePulse).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+		static MethodInfo dfca = typeof(DissolveFadeController).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
 
 		static void ApplyAnims(string bkgname, GameObject layer, int layerNum)
 		{
 			try
 			{
-				if (!backgroundAnims.TryGetValue(bkgname, out var cmpts))
+				if (!backgroundAnims.TryGetValue(bkgname, out var bkg))
 					return;
+				var cmpts = bkg.Item1;
+				string modName = bkg.Item2;
 				foreach (var cmpt in cmpts[layerNum])
 				{
 					if (cmpt.Name == "material")
 					{
-						if (stdMaterials == null)
-							initStdMtl();
-
-						if (!stdMaterials.TryGetValue(cmpt.InnerText, out Material mat))
-							throw new Exception("unknown sprite material: " + cmpt.InnerText);
-						var rdr = layer.GetComponent<Renderer>();
-						rdr.material = new Material(mat);
+						SetMtl(layer, cmpt.InnerText);
 						continue;
 					}
 					if (cmpt.Name == "color")
 					{
 						var rdr = layer.GetComponent<SpriteRenderer>();
 						var uiobj = layer.GetComponent<UI_Object>();
-						Color color = Color.black;
-						foreach (XmlNode channel in cmpt.ChildNodes) {
-							switch (channel.Name) {
-								case "r": color.r = float.Parse(channel.InnerXml); break;
-								case "g": color.g = float.Parse(channel.InnerXml); break;
-								case "b": color.b = float.Parse(channel.InnerXml); break;
-								case "a": color.a = float.Parse(channel.InnerXml); break;
-							}
-						}
-						rdr.color = color;
+						rdr.color = XmlToColor(cmpt);
 						if (uiobj != null)
-							uiobj.toColor = color;
+							uiobj.toColor = rdr.color;
 						continue;
 					}
 
 					var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Name));
-					XmlApply(c, cmpt);
+					XmlApply(c, cmpt, modName);
 
 					if (c is ShineLinear sl)
 						sla.Invoke(sl, null);
@@ -433,6 +455,10 @@ namespace FenLoader
 						// there's still a hard-mask on un-scrolled texture alpha.
 						// Stick to the way the base game does it for now
 						Make3D(layer);
+					}
+					else if (c is DissolveFadeController dfc) {
+						SetMtl(layer, "DissolveFade");
+						dfca.Invoke(dfc, null);
 					}
 				}
 			}

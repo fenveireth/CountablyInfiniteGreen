@@ -14,7 +14,7 @@
 		-->
 		<option_name>FenJump</option_name>
 		<!-- prefix with "mod:", or give name of builtin resource in 'provinces/mapuiassets' -->
-		<icon_path>mod:fen.png</icon_path>
+		<icon_path>mod:img/fen.png</icon_path>
 		<!--<icon_path>stone_circle_icon</icon_path>-->
 		<!-- Hex code starting with #, or one of
 			'red', 'blue', 'green', 'yellow', 'cyan', 'magenta', 'purple', 'grey',

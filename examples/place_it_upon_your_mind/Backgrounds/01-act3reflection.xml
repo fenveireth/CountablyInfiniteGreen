@@ -159,7 +159,7 @@
 				All the way to foreground, because it is the most floaty.
 				The layers groups are always evenly spaced
 			-->
-			<path>crown.png</path>
+			<path>img/crown.png</path>
 			<transform>
 				<position>
 					<x>-70</x>

@@ -1,7 +1,7 @@
 <sounds>
 	<sound>
 		<sound_name>FenTestRiddle</sound_name>
-		<path>million</path> <!-- references "million.ogg" -->
+		<path>sounds/million.ogg</path>
 		<type>MUSIC</type> <!-- in "MUSIC","LOOPING","SFX" -->
 		<volume>1</volume>
 		<!-- <pan/> in [-1; 1] -->
