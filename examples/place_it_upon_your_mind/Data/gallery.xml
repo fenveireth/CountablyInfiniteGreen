@@ -1,0 +1,41 @@
+<gallery_entries>
+	<gallery_entry>
+		<name>GFX: Distortion</name>
+		<id>gfx_distortion</id>
+		<artist_credit>Rachel Seeger</artist_credit>
+		<writing_credit></writing_credit>
+		<description>Texture-driven distortion may be used for water ripples, water streams, or heat shimmer</description>
+		<tags>
+		</tags>
+		<!-- Global variable 'BG_'+<background name> id is set to 1 whenever a
+			background is loaded during play.
+			(Mod backgroungs will have their 'MOD:' prefix still at this point)
+			You can use another global, though -->
+		<seen_requirement>BG_F3_TEMPEST</seen_requirement>
+		<requirements_to_appear>
+			<!--	<dependence>
+				<stat>GLOBAL_TAROT_TOWER</stat>
+				<max>0</max>
+				<min>1</min>
+				<max_multiplier>0</max_multiplier>
+				<min_multiplier>0</min_multiplier>
+				<max_stat></max_stat>
+				<min_stat></min_stat>
+			</dependence>-->
+		</requirements_to_appear>
+		<!-- <override_appearance_flag>True</override_appearance_flag> -->
+		<still_background_path>Backgrounds/_Stills/F3_Tempest</still_background_path>
+		<animated_background_path>f3_tempest</animated_background_path>
+		<variables_to_set>
+			<!-- Not strictly needed in this example, as I did not retain the
+				conditions in the modified background, but this is how you do it.
+				Variables are set when clicking animate button, and reset to 0 when
+				exiting -->
+			<influence>
+				<stat>TEMP_F3_TEMPEST</stat>
+				<type>set</type>
+				<offset>1</offset>
+			</influence>
+		</variables_to_set>
+	</gallery_entry>
+</gallery_entries>

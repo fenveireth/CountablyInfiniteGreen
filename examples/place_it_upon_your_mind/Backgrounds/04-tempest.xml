@@ -1,0 +1,40 @@
+<!--
+	You may edit these files while the game is running
+	When it detects a change, it will reload them and reset the current scene
+-->
+<!--
+	Demonstrate:
+	- Texture-driven distort
+-->
+<backgrounds>
+	<background>
+		<background_name>f3_tempest</background_name>
+		<base_image_width>1778</base_image_width>
+		<scale>.25</scale>
+		<parallax_speed>.2</parallax_speed>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0009_background</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0008_midground</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0007_reflection</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@g10-tempest_0006_aura</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@g10-tempest_0005_halo</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@f3-tempest_0003_water</path>
+		</entity>
+		<entity>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0000_foreground</path>
+		</entity>
+	</background>
+</backgrounds>

@@ -3,6 +3,12 @@
 	When it detects a change, it will reload them and reset the current scene
 -->
 <!--
+	Fix jumping dragon conditions : UI_Element-based checks behave different
+	than using 'SpriteFade'
+	Demonstrate :
+	-	Texture Scroll
+	- Pulse fade
+	- Radial fade
 -->
 <backgrounds>
 	<background>

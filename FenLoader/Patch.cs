@@ -814,5 +814,46 @@ namespace FenLoader
 			var ui = lt.GetComponent<LocationDisplayElement>();
 			fogScale.SetValue(ui, data.local_scale * 0.15f);
 		}
+
+		// Gallery: search backgrounds in mods
+		static GameObject GalleryLoadBkg(string path)
+		{
+			try
+			{
+				GameObject res;
+				var bkdef = BackgroundDataHolder.instance.GetBackground(path);
+				if (bkdef == null) {
+					res = Resources.Load<GameObject>(path);
+					if (res == null)
+						throw new Exception("background not found: " + path);
+				}
+				else {
+					// will result in double-Instantiate -> stray extra background in the
+					// scene
+					res = GameObject.Instantiate(Resources.Load<GameObject>("Backgrounds/CustomBackground"));
+					res.GetComponent<BackgroundObjectManager>().Instantiate(bkdef);
+					GameObject.Destroy(res, 0.00001f); // queue to destroy at end of frame -> ok
+				}
+				return res;
+			}
+			catch (Exception e) {
+				Console.Error.WriteLine(e);
+				ErrorPopup.ShowPriorityText("Error occured\nCheck Player.log file");
+				return null;
+			}
+		}
+
+		[HarmonyPatch(typeof(GalleryPageEntity), "AddAnimation")]
+		[HarmonyPatch(typeof(GalleryPage), "LoadImg")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> GalleryLoadAnim(IEnumerable<CodeInstruction> instrs)
+		{
+			foreach (var inst in instrs)
+			{
+				if (inst.operand?.ToString() == "UnityEngine.Object Load(System.String)")
+					inst.operand = AccessTools.Method(typeof(Patch), "GalleryLoadBkg", new Type[] { typeof(string) });
+				yield return inst;
+			}
+		}
 	}
 }

@@ -60,6 +60,7 @@ namespace FenLoader
 		}
 
 		private static FieldInfo getCB = typeof(EventChanger).GetField("current_background", BindingFlags.NonPublic | BindingFlags.Instance);
+		private static MethodInfo destroyAni = typeof(GalleryPageEntity).GetMethod("DestroyAnimation", BindingFlags.NonPublic | BindingFlags.Instance);
 
 		// Background reloader
 		[HarmonyPatch(typeof(BackgroundDataHolder), "Start")]
@@ -79,6 +80,14 @@ namespace FenLoader
 							string cur = (string)getCB.GetValue(EventChanger.Instance);
 							if (cur != null)
 								EventChanger.Instance.LoadBackgroundImage(cur);
+							var gal = GalleryManager.Instance;
+							if (gal != null && gal.isFullscreen) {
+								var ge = gal.GetEntity(gal.currentEntry);
+								if (ge.isAnimated) {
+									destroyAni.Invoke(ge, null);
+									ge.AddAnimation();
+								}
+							}
 						}
 						catch (Exception e) {
 							Patch.ErrorPopup.ShowPriorityText("Error while reloading background files\nPlease check 'Player.log' file");
