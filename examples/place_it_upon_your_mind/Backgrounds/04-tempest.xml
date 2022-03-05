@@ -4,14 +4,14 @@
 -->
 <!--
 	Demonstrate:
-	- Texture-driven distort
+	- Texture-driven distort + fade
 -->
 <backgrounds>
 	<background>
 		<background_name>f3_tempest</background_name>
 		<base_image_width>1778</base_image_width>
 		<scale>.25</scale>
-		<parallax_speed>.2</parallax_speed>
+		<parallax_speed>.8</parallax_speed>
 		<entity>
 			<path>base:backgrounds/f3_tempest@f3-tempest_0009_background</path>
 		</entity>
@@ -20,18 +20,151 @@
 		</entity>
 		<entity>
 			<path>base:backgrounds/f3_tempest@f3-tempest_0007_reflection</path>
-		</entity>
-		<entity>
-			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@g10-tempest_0006_aura</path>
+			<!-- DistortionInitialize will reset material to 'NoiseDisplacementMaterial' -->
+			<DistortionInitialize>
+				<distortionTexture>img/2d_noise.png</distortionTexture>
+				<!--<fadeTexture></fadeTexture>-->
+				<color>
+					<r>1</r>
+					<g>1</g>
+					<b>1</b>
+					<a>1</a>
+				</color>
+				<magnitude>0.01</magnitude>
+				<distortionRate>
+					<x>-0.2</x>
+					<y>0.5</y>
+				</distortionRate>
+				<fadeColorComponents>
+					<r>1</r>
+					<g>1</g>
+					<b>1</b>
+					<a>0</a>
+				</fadeColorComponents>
+				<fadeRate>
+					<x>-0.2</x>
+					<y>0.5</y>
+				</fadeRate>
+				<fadeRange>
+					<x>1</x>
+					<y>1</y>
+				</fadeRange>
+				<addTint>false</addTint>
+				<tint>
+					<r>1</r>
+					<g>1</g>
+					<b>1</b>
+					<a>0.63529414</a>
+				</tint>
+				<sampleSize>1</sampleSize>
+				<sampleSizeFade>1</sampleSizeFade>
+				<useDifferentSampleSizes>false</useDifferentSampleSizes>
+			</DistortionInitialize>
 		</entity>
 		<entity>
 			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@g10-tempest_0005_halo</path>
+			<material>GlitterGrow</material>
+			<FloatMovement>
+				<amplitude1>
+					<x>0</x>
+					<y>0.2</y>
+				</amplitude1>
+				<amplitude2>
+					<x>0</x>
+					<y>0.2</y>
+				</amplitude2>
+				<speed1>
+					<x>0</x>
+					<y>0.6</y>
+				</speed1>
+				<speed2>
+					<x>0</x>
+					<y>0.6</y>
+				</speed2>
+				<randomOffset>
+					<x>0</x>
+					<y>0</y>
+				</randomOffset>
+				<rotationSpeed1>
+					<x>0</x>
+					<y>0</y>
+					<z>0</z>
+				</rotationSpeed1>
+				<rotationSpeed2>
+					<x>0</x>
+					<y>0</y>
+					<z>0</z>
+				</rotationSpeed2>
+				<positionPower>1</positionPower>
+				<shouldMove>true</shouldMove>
+			</FloatMovement>
+			<ShineLinear>
+				<currentShine>0</currentShine>
+				<tintColor>
+					<r>0</r>
+					<g>0</g>
+					<b>0</b>
+					<a>0</a>
+				</tintColor>
+				<ignoreFullFade>false</ignoreFullFade>
+				<rate>0.1</rate>
+				<time_between>4</time_between>
+				<random_start>3</random_start>
+				<time>0</time>
+				<timeDelay>1</timeDelay>
+				<widthShine>0.3</widthShine>
+				<ovalRatio>1</ovalRatio>
+				<alphamin>0</alphamin>
+				<alphamax>0.7</alphamax>
+				<effectorigin>
+					<x>0.5</x>
+					<y>0.35</y>
+					<z>0</z>
+				</effectorigin>
+				<onStart>true</onStart>
+				<widthGrow>true</widthGrow>
+			</ShineLinear>
 		</entity>
 		<entity>
-			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon</path>
+			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@g10-tempest_0002_spirit_lines</path>
+			<!-- Can't quite make this one work (original sprite probably uses secondary texture),
+				but you can also use effect for random 'blotches' sprit-lines fade, using extreme range values -->
 		</entity>
 		<entity>
 			<path>base:backgrounds/f3_tempest@f3-tempest_0003_dragon@f3-tempest_0003_water</path>
+			<parallax>
+				<movement>group</movement>
+			</parallax>
+			<DistortionInitialize>
+				<distortionTexture>img/grey_px.png</distortionTexture>
+				<fadeTexture>img/2d_noise.png</fadeTexture>
+				<useRendererColorInstead>true</useRendererColorInstead>
+				<magnitude>0</magnitude>
+				<fadeColorComponents>
+					<r>1</r>
+					<g>0</g>
+					<b>0</b>
+					<a>0</a>
+				</fadeColorComponents>
+				<fadeRate>
+					<x>0</x>
+					<y>1</y>
+				</fadeRate>
+				<fadeRange>
+					<x>0</x>
+					<y>1</y>
+				</fadeRange>
+				<addTint>false</addTint>
+				<tint>
+					<r>0.5</r>
+					<g>0.5</g>
+					<b>0.5</b>
+					<a>0</a>
+				</tint>
+				<sampleSize>5</sampleSize>
+				<sampleSizeFade>1</sampleSizeFade>
+				<useDifferentSampleSizes>false</useDifferentSampleSizes>
+			</DistortionInitialize>
 		</entity>
 		<entity>
 			<path>base:backgrounds/f3_tempest@f3-tempest_0000_foreground</path>

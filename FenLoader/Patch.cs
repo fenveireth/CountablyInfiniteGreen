@@ -347,7 +347,10 @@ namespace FenLoader
 			stdMaterials = new Dictionary<string, Material>() {
 				{"Clouds_Mat", Resources.Load<GameObject>("backgrounds/Promentory_Image").transform.GetChild(12).GetComponent<Renderer>().materials[0] },
 				{"DissolveFade", Resources.Load<GameObject>("backgrounds/d13_twist").transform.GetChild(2).GetChild(0).GetChild(1).GetComponent<Renderer>().materials[0] },
+				{"GlitterBand", Resources.Load<GameObject>("backgrounds/d11_claypit").transform.GetChild(3).GetChild(0).GetComponent<Renderer>().materials[0] },
+				{"GlitterGrow", Resources.Load<GameObject>("backgrounds/burrow_image").transform.GetChild(3).GetChild(0).GetComponent<Renderer>().materials[0] },
 				{"GlitterRotate", Resources.Load<GameObject>("backgrounds/d12_greatgreenentrance").transform.GetChild(0).GetChild(0).GetComponent<Renderer>().materials[0] },
+				{"NoiseDisplacementMaterial", Resources.Load<GameObject>("backgrounds/d10_children").transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[0] },
 				{"Sprites-Default", Resources.Load<GameObject>("backgrounds/Act2_Reflection").transform.GetChild(0).GetComponent<Renderer>().materials[0] },
 			};
 		}
@@ -459,6 +462,9 @@ namespace FenLoader
 					else if (c is DissolveFadeController dfc) {
 						SetMtl(layer, "DissolveFade");
 						dfca.Invoke(dfc, null);
+					}
+					else if (c is DistortionInitialize di) {
+						SetMtl(layer, "NoiseDisplacementMaterial");
 					}
 				}
 			}

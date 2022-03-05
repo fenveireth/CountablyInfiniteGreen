@@ -14,7 +14,41 @@
 		<!-- Specify the layers in reverse order -->
 		<entity>
 			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Shadow@Gw-3_player_shadow</path>
-			<!-- float pos don't work yet -->
+			<!-- 'float' add extra random movement on top of parallax -->
+			<FloatMovement>
+				<amplitude1>
+					<x>.5</x>
+					<y>0</y>
+				</amplitude1>
+				<amplitude2>
+					<x>0.5</x>
+					<y>0</y>
+				</amplitude2>
+				<speed1>
+					<x>0.15</x>
+					<y>0</y>
+				</speed1>
+				<speed2>
+					<x>0.15</x>
+					<y>0</y>
+				</speed2>
+				<randomOffset>
+					<x>0</x>
+					<y>0</y>
+				</randomOffset>
+				<rotationSpeed1>
+					<x>0</x>
+					<y>0</y>
+					<z>0</z>
+				</rotationSpeed1>
+				<rotationSpeed2>
+					<x>0</x>
+					<y>0</y>
+					<z>0</z>
+				</rotationSpeed2>
+				<positionPower>1</positionPower>
+				<shouldMove>true</shouldMove>
+			</FloatMovement>
 		</entity>
 		<entity>
 			<path>base:backgrounds/GW3_WolfCubs@GW3_Den@Gw-3_front_pup@Gw-3_front_halo</path>
@@ -196,7 +230,7 @@
 					<a>.749</a>
 				</color>
 				<width>.5</width>
-				<dissolveTexture>img/gradient-up.png</dissolveTexture>
+				<dissolveTexture>img/gradient_up.png</dissolveTexture>
 				<duration>11</duration>
 				<delay>5</delay>
 				<randomDelayMin>0</randomDelayMin>
