@@ -1,0 +1,17 @@
+<text_sequences>
+	<text_sequence>
+		<id>fen_poem</id>
+		<text>First line of text&lt;continue&gt;
+  Second line of text&lt;continue&gt;
+    Line breaks here are ignored&lt;continue&gt;
+      Whitespace is kept, but text remains centered&lt;continue&gt;
+        This is not the component that is used for chapter starts&lt;continue&gt;
+		</text>
+		<!-- dark_alpha: doesn't work -->
+		<font_size>4</font_size>
+		<!-- optional background image, faded with DissolveFadeControler -->
+		<background>img/crown.png</background>
+		<!-- defaults to a vertical scan -->
+		<background_fade>img/circle_fade_in.png</background_fade>
+	</text_sequence>
+</text_sequences>

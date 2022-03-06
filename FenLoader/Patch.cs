@@ -861,5 +861,63 @@ namespace FenLoader
 				yield return inst;
 			}
 		}
+
+		// Augment generic poem screen with background image
+		static Dictionary<string, string> poemBackgrounds = new Dictionary<string, string>();
+		static Dictionary<string, string> poemBackgroundFades = new Dictionary<string, string>();
+
+		[HarmonyPatch(typeof(XMLParser), "GetTextSequenceData")]
+		[HarmonyPostfix]
+		static void LoadPoem(ref TextSequenceData __result, XmlNode sequenceData)
+		{
+			poemBackgrounds.Remove(__result.id);
+			poemBackgroundFades.Remove(__result.id);
+			Console.WriteLine("LP " + InMod);
+			foreach (XmlNode c in sequenceData.ChildNodes)
+			{
+				switch (c.Name)
+				{
+				case "background":
+					poemBackgrounds.Add(__result.id, InMod + c.InnerText);
+					break;
+				case "background_fade":
+					poemBackgroundFades.Add(__result.id, InMod + c.InnerText);
+					break;
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(SequenceTextController), "Start")]
+		[HarmonyPrefix]
+		static bool LoadPoem(SequenceTextController __instance)
+		{
+			try
+			{
+				string seqid = PlayerAttributes.Instance.GetAttributeString("TEMP_TEXT_SEQUENCE_ID");
+				if (seqid == "")
+					return true;
+
+				if (poemBackgrounds.TryGetValue(seqid, out string bkpath)) {
+					var bksprite = LoadSprite(bkpath, null);
+					var sr = __instance.transform.GetChild(1).GetComponent<SpriteRenderer>();
+					sr.sprite = bksprite;
+					sr.color = Color.white;
+					Component.Destroy(sr.GetComponent<UI_Element>());
+					Component.Destroy(sr.GetComponent<UI_Object>());
+				}
+
+				if (poemBackgroundFades.TryGetValue(seqid, out string fadepath)) {
+					var bkfade = LoadSprite(fadepath, null);
+					var dfc = __instance.transform.GetChild(1).GetComponent<DissolveFadeController>();
+					dfc.dissolveTexture = bkfade.texture;
+				}
+			}
+			catch (Exception e) {
+				Console.Error.WriteLine(e);
+				ErrorPopup.ShowPriorityText("An error occured\nPlease check Player.log file");
+			}
+
+			return true;
+		}
 	}
 }

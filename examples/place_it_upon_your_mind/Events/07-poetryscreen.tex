@@ -1,0 +1,21 @@
+% Demonstrate:
+% - Poem screen
+% - [EventLoad] option to auto-set/do stuff
+
+% Comes with a background image with "DissolveFade"
+
+\event{fen_poem}
+
+This text will not be shown
+
+\option [EventLoad]
+% Connects with Data/text_sequences.xml
+\set{TEMP_TEXT_SEQUENCE_ID = fen_poem}
+\set{TEMP_POST_TEXT_SEQUENCE_LOCATION = MainLair}
+\transition{fadein} \go{GenerateTextSequence}
+
+% For reference: showing prey poem
+% ! Calling this is what applies the stat bonus for the current life !
+% \set{TEMP_MASTERY_NAME = WHITEBLACK}
+% \set{POST_MASTERY_LOCATION = MainLair}
+% \transition{fadein} \go{PreyMasteryDisplayer}
