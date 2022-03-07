@@ -40,8 +40,23 @@ Math Wrong
 Math Right
 
 % Twist uses this read trap to pick at random:
+\event{fen_redef_d13r}
 
-% Not shown : construct this list based on what was already answered
-% \set{MYLIST = 1,2,3,4} % would work with strings as well
-% Then pick one
-% \set{MYCHOICE = RANDOM_MYLIST}
+% This option is immediately taken on event load, without any user interation
+\option [EventLoad]
+\if{TEMP_D13_SUCCESSES >= *TEMP_D13_REQUIRED_SUCCESSES}
+	\transition{fade} \go{d13s}
+\if{TEMP_D13_FAILS >= *TEMP_D13_ALLOWED_FAILS}
+	\transition{fade} \go{d13fail}
+% empty \go: perform the \set, and keep evaluating branches in order
+\set{TEMP_D13_RIDDLE_LIST = } \go{}
+% Use this to create a string like \set{MYLIST = 1,2,3,4,}, depending on
+% already-asked riddles
+\if{TEMP_D13_R1 == 0} \set{TEMP_D13_RIDDLE_LIST += 1,} \go{}
+\if{TEMP_D13_R2 == 0} \set{TEMP_D13_RIDDLE_LIST += 2,} \go{}
+\if{TEMP_D13_R3 == 0} \set{TEMP_D13_RIDDLE_LIST += 3,} \go{}
+\if{TEMP_D13_R4 == 0} \set{TEMP_D13_RIDDLE_LIST += 4,} \go{}
+% Then pick one (that would have worked with non-numerics as well) using the
+% 'RANDOM_' prefix. Will read string as a comma-separated list.
+% Also, {}-substitution works in \go like normal paragraph
+\go{d13r{RANDOM_TEMP_D13_RIDDLE_LIST}} % goes to one of 'd13r1','d13r2',...

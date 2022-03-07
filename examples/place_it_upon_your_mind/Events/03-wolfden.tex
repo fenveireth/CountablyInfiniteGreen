@@ -64,19 +64,21 @@ to defend it. You must be swift.
 
 
 \event{gw3_1b}
-% text style spans cannot cross paragraph boundaries.
-% All whitespace runs are folded into a single space, so use '\\' for a '<br/>'
+% text style spans cannot cross paragraph boundaries: paragraphs are processed
+% independently for typesetting.
+% All whitespace runs are folded into a single space, so use '\\' for a '<br>'.
 After you step out of hiding and announce your challenge, the sentry replies:\\
 <color 3d5bff><wolf>I am Guards-the-Treasure, the One Left Behind.\\
-I am old, but strong, forged in many battles.</color>
+I am old, but strong, forged in many battles.
 
+% Dragons are real, XHTML is not. It's fine to leave styling tags unclosed
 <color 3d5bff><wolf>My Body and Essence are unified\\
 In standing between our most prized possession\\
-And any who would take it.</color>
+And any who would take it.
 
 <color 3d5bff><wolf>Though I fear you, I shall remain, like a Stone\\
 Unmoved and ever-ready, and honor your challenge.\\
-Let the Dance of Destruction begin.</color>
+Let the Dance of Destruction begin.
 
 \\ % again, pause, don't interrupt the wolf
 
@@ -126,7 +128,7 @@ with fear, but one of them bravely stands and approaches you.
 
 <color 2878ff><wolf>I am Shining-Eye, last-born\\
 of the Future of the Claws-of-the-Spirit Clan.\\
-Have you come to Destroy us, Great Draak?</color>
+Have you come to Destroy us, Great Draak?
 
 The aroma of their delicious, tender, milk-fed flesh calls to you. All together,
 they would be a very fine meal indeed, and they are defenseless, their small
@@ -161,13 +163,13 @@ You explain to the younglings that you came here in search of Treasure, not
 food. Shining-Eye replies:
 
 <color 2878ff><wolf>We are the greatest Treasure of the Claws-of-the-Spirit
-Clan.\\ We are the Immortality of our People.</color>
+Clan.\\ We are the Immortality of our People.
 
 <color 2878ff><wolf>From our Birther-Creator's Body, we draw sacred milk,\\
-And from our Giver-Creator's mouth, we receive warm flesh.</color>
+And from our Giver-Creator's mouth, we receive warm flesh.
 
 <color 2878ff><wolf>We flow from them, like a River, bringing their Songs\\
-Into the Future; there can be no greater Treasure, or so they Sing.</color>
+Into the Future; there can be no greater Treasure, or so they Sing.
 \set{CLANSINGER_MASTERY += 3} % triggers knowledge sigil appearance
 
 
@@ -191,7 +193,7 @@ joyous to find their precious Treasure still alive and whole.
 You can hear them raise a Song of Thanksgiving for their good fortune, the Song
 echoing and twisting joyfully among the Trees:
 
-<color 00b4ff><wolf>Our Future lives! Love's labor is not lost!</color>
+<color 00b4ff><wolf>Our Future lives! Love's labor is not lost!
 
 \option /EndEvent \set{WOLFREP += 2} \set{SPAREDCUBS = 1} \set{COMPASSION += 1}
 \soundStop{GW3Amb} \soundStop{GW3Mus} \transition{fade} \go{DayTransition}

@@ -19,6 +19,7 @@ namespace FenLoader
 		private bool startArg;
 		private bool inArg;
 		private int lineno = 1;
+		private int bracketBalance;
 
 		private StringBuilder paragraph = new StringBuilder();
 		private bool parBR;
@@ -93,14 +94,17 @@ namespace FenLoader
 				}
 				break;
 			case '{':
-				if (inCommand)
+				++bracketBalance;
+				if (inCommand) {
 					startArg = true;
-				FlushWord();
-				if (!inArg)
+					FlushWord();
+				}
+				if (!inArg || bracketBalance != 1)
 					acc.Add((byte)c);
 				break;
 			case '}':
-				if (inArg) {
+				--bracketBalance;
+				if (inArg && bracketBalance == 0) {
 					FlushWord();
 					inArg = false;
 					Command(subgroup.ToString());
@@ -234,6 +238,8 @@ namespace FenLoader
 				transition = arg;
 				break;
 			case "go":
+				if (arg == null)
+					Raise("\\go requires argument");
 				if (option == null) {
 					FlushParagraph();
 					option = new EventOption();
@@ -289,10 +295,10 @@ namespace FenLoader
 		private EventOptionStatInfluence ParseSet(string expr)
 		{
 			string[] w = expr.Split();
-			if (w.Length < 3)
+			if (w.Length < 2)
 				Raise("Invalid set");
 
-			bool isDeref = w[2][0] == '*';
+			bool isDeref = w.Length > 2 && w[2][0] == '*';
 			float mult = 1;
 
 			if (w.Length > 3)
@@ -316,11 +322,14 @@ namespace FenLoader
 			}
 
 			string influencer = "";
-			if (!float.TryParse(w[2], out float v))
+			float v = 0;
+			if (w.Length == 2)
+				influencer = ",";
+			else if (w[2].Any(c => c == ',') || !float.TryParse(w[2], out v))
 			{
 				if (isDeref)
 					influencer = w[2].Substring(1);
-				else if (w[1] == "=")
+				else if (w[1] != "-=")
 					influencer = "," + w[2];
 				else
 					Raise("invalid set");

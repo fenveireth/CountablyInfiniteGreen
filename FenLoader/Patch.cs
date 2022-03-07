@@ -872,7 +872,6 @@ namespace FenLoader
 		{
 			poemBackgrounds.Remove(__result.id);
 			poemBackgroundFades.Remove(__result.id);
-			Console.WriteLine("LP " + InMod);
 			foreach (XmlNode c in sequenceData.ChildNodes)
 			{
 				switch (c.Name)
