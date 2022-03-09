@@ -4,40 +4,29 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define EMBD_FILE(v) extern const char _binary_##v##_start[]; extern const char _binary_##v##_end[]
-
-EMBD_FILE(libloader);
-EMBD_FILE(FenLoader);
-EMBD_FILE(0Harmony);
-EMBD_FILE(Mono_Cecil);
-EMBD_FILE(MonoMod_RuntimeDetour);
-EMBD_FILE(MonoMod_Utils);
-
-#undef EMBD_FILE
+static const char* mbdfiles[] = {
+	"FenLoader.dll",
+	"0Harmony.dll",
+	"Mono.Cecil.dll",
+	"MonoMod.RuntimeDetour.dll",
+	"MonoMod.Utils.dll",
+	"libloader.dll",
+};
 
 static bool extract_files()
 {
-	int size;
-	int w;
-	FILE* file;
-#define DMP(v, fn) \
-	size = _binary_##v##_end - _binary_##v##_start; \
-	file = fopen(fn, "wb"); \
-	if (!file) { \
-		return false; \
-	} \
-	w = fwrite(_binary_##v##_start, 1, size, file); \
-	fclose(file); \
-	if (w != size) \
-		return false;
-
-	DMP(libloader, "libloader.dll");
-	DMP(FenLoader, "FenLoader.dll");
-	DMP(0Harmony, "0Harmony.dll");
-	DMP(Mono_Cecil, "Mono.Cecil.dll");
-	DMP(MonoMod_RuntimeDetour, "MonoMod.RuntimeDetour.dll");
-	DMP(MonoMod_Utils, "MonoMod.Utils.dll");
-#undef DMP
+	for (int i = 0; i < 6; ++i)
+	{
+		HRSRC rc = FindResource(NULL, MAKEINTRESOURCE(110 + i), MAKEINTRESOURCE(RT_RCDATA));
+		HGLOBAL g = LoadResource(NULL, rc);
+		int size = SizeofResource(NULL, rc);
+		const void* data = LockResource(g);
+		FILE* file = fopen(mbdfiles[i], "wb");
+		int w = fwrite(data, 1, size, file);
+		fclose(file);
+		if (w != size)
+			return false;
+	}
 
 	return true;
 }
