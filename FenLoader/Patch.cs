@@ -862,28 +862,14 @@ namespace FenLoader
 			}
 		}
 
-		// Augment generic poem screen with background image
-		static Dictionary<string, string> poemBackgrounds = new Dictionary<string, string>();
-		static Dictionary<string, string> poemBackgroundFades = new Dictionary<string, string>();
+		// Augment generic poem screen
+		static Dictionary<string, (XmlNode, string)> poems = new Dictionary<string, (XmlNode, string)>();
 
 		[HarmonyPatch(typeof(XMLParser), "GetTextSequenceData")]
 		[HarmonyPostfix]
 		static void LoadPoem(ref TextSequenceData __result, XmlNode sequenceData)
 		{
-			poemBackgrounds.Remove(__result.id);
-			poemBackgroundFades.Remove(__result.id);
-			foreach (XmlNode c in sequenceData.ChildNodes)
-			{
-				switch (c.Name)
-				{
-				case "background":
-					poemBackgrounds.Add(__result.id, InMod + c.InnerText);
-					break;
-				case "background_fade":
-					poemBackgroundFades.Add(__result.id, InMod + c.InnerText);
-					break;
-				}
-			}
+			poems[__result.id] = (sequenceData, InMod);
 		}
 
 		[HarmonyPatch(typeof(SequenceTextController), "Start")]
@@ -896,19 +882,35 @@ namespace FenLoader
 				if (seqid == "")
 					return true;
 
-				if (poemBackgrounds.TryGetValue(seqid, out string bkpath)) {
-					var bksprite = LoadSprite(bkpath, null);
-					var sr = __instance.transform.GetChild(1).GetComponent<SpriteRenderer>();
-					sr.sprite = bksprite;
-					sr.color = Color.white;
-					Component.Destroy(sr.GetComponent<UI_Element>());
-					Component.Destroy(sr.GetComponent<UI_Object>());
-				}
-
-				if (poemBackgroundFades.TryGetValue(seqid, out string fadepath)) {
-					var bkfade = LoadSprite(fadepath, null);
-					var dfc = __instance.transform.GetChild(1).GetComponent<DissolveFadeController>();
-					dfc.dissolveTexture = bkfade.texture;
+				var p = poems[seqid];
+				string modRoot = p.Item2;
+				foreach (XmlNode c in p.Item1.ChildNodes)
+				{
+					switch (c.Name)
+					{
+					case "background":
+						var bksprite = LoadSprite(modRoot + c.InnerText, null);
+						var sr = __instance.transform.GetChild(1).GetComponent<SpriteRenderer>();
+						sr.sprite = bksprite;
+						sr.color = Color.white;
+						Component.Destroy(sr.GetComponent<UI_Element>());
+						Component.Destroy(sr.GetComponent<UI_Object>());
+						break;
+					case "background_fade":
+						var bkfade = LoadSprite(modRoot + c.InnerText, null);
+						var dfc = __instance.transform.GetChild(1).GetComponent<DissolveFadeController>();
+						dfc.dissolveTexture = bkfade.texture;
+						break;
+					case "background_scale":
+						__instance.transform.GetChild(1).localScale *= float.Parse(c.InnerText);
+						break;
+					case "font_size":
+						__instance.rectSize.y = float.Parse(c.InnerText) / 8;
+						break;
+					case "line_gap":
+						__instance.textPadding = float.Parse(c.InnerText) / 8;
+						break;
+					}
 				}
 			}
 			catch (Exception e) {
