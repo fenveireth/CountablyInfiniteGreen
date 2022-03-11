@@ -551,6 +551,8 @@ namespace FenLoader
 				if (seqid == "")
 					return true;
 
+				__instance.rectSize.x = 160.0f / 9;
+
 				var p = poems[seqid];
 				string modRoot = p.Item2;
 				foreach (XmlNode c in p.Item1.ChildNodes)
@@ -578,6 +580,10 @@ namespace FenLoader
 						break;
 					case "line_gap":
 						__instance.textPadding = float.Parse(c.InnerText) / 8;
+						break;
+					case "align":
+						if (c.InnerText == "left")
+							__instance.GetComponentInChildren<TextMeshPro>().alignment = TMPro.TextAlignmentOptions.Left;
 						break;
 					}
 				}

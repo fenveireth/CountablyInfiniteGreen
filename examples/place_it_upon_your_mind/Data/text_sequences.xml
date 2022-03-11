@@ -2,11 +2,13 @@
 	<text_sequence>
 		<id>fen_poem</id>
 		<text>First line of text&lt;continue&gt;
-&lt;#FFC85A&gt;Golden line of text&lt;continue&gt;
-&lt;i&gt;Line breaks here are ignored&lt;continue&gt;
-Whitespace is kept, but text remains centered&lt;continue&gt;
-This is not the component that is used for chapter starts&lt;continue&gt;
+  &lt;#FFC85A&gt;Golden line of text&lt;continue&gt;
+    &lt;i&gt;Line breaks here are ignored&lt;continue&gt;
+      Whitespace is kept, but is less useful in centered mode&lt;continue&gt;
+        This is not the component used for chapter starts, but can make it work&lt;continue&gt;
 		</text>
+		<!-- defaults to 'centered' -->
+		<align>left</align>
 		<!-- dark_alpha: doesn't work -->
 		<font_size>4</font_size>
 		<line_gap>2</line_gap>
