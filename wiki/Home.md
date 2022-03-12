@@ -8,6 +8,7 @@ As a player:
 As an author
 
 - [Ingame console cheatsheet](./console)
+- [Visual Effects](./graphics)
 
 [install]: ./install-loader
 [install_mod]: ./install-mods
