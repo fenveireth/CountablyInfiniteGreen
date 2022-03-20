@@ -1,0 +1,133 @@
+<prey_data_list>
+	<prey_data>
+		<id>untamedblazetail</id>
+		<name>Untamed Blazetail</name>
+		<air>51</air>
+		<fire>38</fire>
+		<!-- Water stat compared to players influences chance of detection during
+			stalking phase when sneaking up -->
+		<water>62</water>
+		<earth>35</earth>
+		<!-- Size relative to players influences stalking phase:
+			- Chance of detection when sneaking up
+			- Prey response to noticing player
+			Player size is 3 in act 1, 4 in act 2, 5 in act 3
+			Also literally resizes sprite on screen, that's the unit
+		-->
+		<size>3</size>
+		<!-- Temper influences stalking phase
+			When player is noticed:
+			1: Flee
+			2: Flee if player is 2 larger or more, Ignore if player is 2 smaller or more, Engage otherwise
+			3/other: Flee is player is larger, Engage otherwise. They will also deny retreat if they have higher Air than player
+		-->
+		<type>1</type>
+		<!-- If 1, add "The " whenever name appears in text -->
+		<article>1</article>
+		<mastery>BLAZETAIL</mastery>
+		<mastery_sprite>Provinces/MapUIAssets/fox_icon</mastery_sprite>
+		<scent>A moderately-sized furbeast with a predator's scent.</scent>
+		<abilities>
+			<!-- Possible values:
+			Most of those need a 'PASSIVE_' prefix, but not all. Did not figure out
+			this mechanism yet. Refer to the prey data from base game
+			- AGONY:
+				Cosmetic: The health aura is forced to Red regardless of creature
+				health
+			- ARMOR:
+				Physical damage x0.5 if player fire is stronger than creature earth,
+				x0 otherwise. Upped to x0.75 / x0.5 if player has 'WEAKEN_RESISTANCES'
+			- ARMOR_1: flat -5 to physical damage
+			- ARMOR_2: flat -10 to physical damage
+			- BALL_DEFENSE: implies 'ARMOR' + creature uses 'BALL'
+			- BURROW: cannot start a chase from distance 3 if player doesn't have it
+				as well
+			- CLIMB: cannot start a chase from afar if in 'forest' or 'woods' biome,
+				and player doesn't have it as well
+			- COURAGE: Always fight you on detection, overriding PreyType+Size logic
+			- COWARD: Attemps to flee at 60% healt
+			- EXPLODE: if hit with fire attack, player skips turn, and creature uses
+				'EXPLODE'
+			- DISEASE_RIDDEN: 10% of damage to player added to 'DISEASE' counter
+				after the fight
+			- FLY: cannot start a chase
+			- FULLNEGATE_<element>
+			- HYPERIMMUNE
+			- IGNORE_ARMOR: retypes 'Physical' damage into 'Forced'
+			- IMMUNE_FIRE
+			- IMMUNE_MIND
+			- IMMUNE_PAIN
+			- IMMUNE_TO_DAMAGE
+			- IMMUNE_TS_DESTRUCTION
+			- MESS_WITH_UI: screen gets more distorted as player health goes down
+			- PACKTACTICS: If about to lose an elemental clash, creature replaces
+				their play with 'BRACE'
+			- POISON: physical attacks poison player. Gives 'POISONED' effect if
+				creature is smaller than player, 'SEVERE_POISONED' if same or larger
+			- RAGE: permanently 'ENRAGED': immune to mind damage and pain
+			- RESIST_FIRE
+			- RESIST_PAIN
+			- SCATTER: use 'SCATTER' at 50% health. You fight a new creature, at 75%
+				max health
+			- SLOW_BURN: extra 'SLOW_BURN' attack at every turn + Lose 1 energy
+				every turn
+			- SPIKES: 25% of physical damage dealt back to player
+			- SPINES: 5 Forced damage dealt back to player on physical attack
+			- STAND: creature gets 'STAND' effect at 40% health (+15 Fire + change
+				sprite if creature has one)
+			- SUMMON_CREATOR: use 'SUMMON' if the fight lasts more than 3 turns. You
+				fight a new creature, with the 'PROTEC' buff
+			- SWIM: does nothing
+			- TAILBREAK: after Ambush or Chase phase, prey may still escape if
+				player mastery of it is less than 10
+			- TAILLESS_SLAYER_DEBUFF: prey is subject to the debuff from the
+				'Judgement' tarot card (-10 to all elements)
+			- TELLS: Enables use of the specific <tells> attack call texts, and the
+				attack-specific sprites, if the creature has them
+			- TIMED_RETREAT: does nothing
+			- ULTRA_SWIM: cannot start a chase
+			- UNDERWATER: Player gets 'UNDERWATER' status during the fight (no fire
+				attack)
+			- UNPREDICTABLE: after the <opening_sequence>, next attacks are chosen
+				at random from actions list
+			-->
+			<ability>PASSIVE_CLIMB</ability>
+		</abilities>
+		<end_combat_health_ratio>0.25</end_combat_health_ratio>
+		<opening_actions>
+			<action>SWIFT_STRIKE</action>
+			<action>FLOWING_STRIKE</action>
+		</opening_actions>
+		<start_at_first_action>True</start_at_first_action>
+		<combat_actions>
+			<action>PACIFY</action>
+			<action>SWIFT_STRIKE</action>
+			<action>FLOWING_STRIKE</action>
+			<action>FLOWING_STRIKE</action>
+			<action>PACIFY</action>
+			<action>SWIFT_STRIKE</action>
+			<action>SWIFT_STRIKE</action>
+		</combat_actions>
+		<health_percent_for_phase_two>0.5</health_percent_for_phase_two>
+		<phase_two_combat_actions>
+			<action>FLOWING_STRIKE</action>
+			<action>PACIFY</action>
+			<action>FLOWING_STRIKE</action>
+			<action>SWIFT_STRIKE</action>
+			<action>SWIFT_STRIKE</action>
+		</phase_two_combat_actions>
+		<summoned_creature_name>darksweet</summoned_creature_name>
+		<tells>
+			<call on="PHASE1"></tell>
+			<call on="PHASE2"></tell>
+		</tells>
+		<combat_position>0</combat_position>
+		<combat_size_mod>7</combat_size_mod>
+		<far_size_mod>2</far_size_mod>
+		<near_size_mod>6</near_size_mod>
+		<immediate_size_mod>12</immediate_size_mod>
+		<chase_height_offset>5</chase_height_offset>
+		<!-- Outside of hunting grounds, can be overwritten from scenario by temp variable -->
+		<success_location>hunt_blazetail_slain_event</success_location>
+	</prey_data>
+</prey_data_list>
