@@ -3,10 +3,12 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace FenLoader
 {
@@ -215,6 +217,47 @@ namespace FenLoader
 		static MethodInfo spa = typeof(ShinePulse).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
 		static MethodInfo dfca = typeof(DissolveFadeController).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
 
+		static void ApplyAnims(GameObject layer, List<XmlElement> def, string modName)
+		{
+			foreach (var cmpt in def)
+			{
+				if (cmpt.Name == "material")
+				{
+					SetMtl(layer, cmpt.InnerText);
+					continue;
+				}
+				if (cmpt.Name == "color")
+				{
+					var rdr = layer.GetComponent<SpriteRenderer>();
+					var uiobj = layer.GetComponent<UI_Object>();
+					rdr.color = XmlToColor(cmpt);
+					if (uiobj != null)
+						uiobj.toColor = rdr.color;
+					continue;
+				}
+
+				var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Name));
+				XmlApply(c, cmpt, modName);
+				if (c is ShineLinear sl)
+					sla.Invoke(sl, null);
+				else if (c is ShinePulse sp)
+					spa.Invoke(sp, null);
+				else if (c is TextureLoopScroll tl) {
+					// Just changing the material is enough to make it move, but then
+					// there's still a hard-mask on un-scrolled texture alpha.
+					// Stick to the way the base game does it for now
+					Make3D(layer);
+				}
+				else if (c is DissolveFadeController dfc) {
+					SetMtl(layer, "DissolveFade");
+					dfca.Invoke(dfc, null);
+				}
+				else if (c is DistortionInitialize di) {
+					SetMtl(layer, "NoiseDisplacementMaterial");
+				}
+			}
+		}
+
 		static void ApplyAnims(string bkgname, GameObject layer, int layerNum)
 		{
 			try
@@ -223,44 +266,7 @@ namespace FenLoader
 					return;
 				var cmpts = bkg.Item1;
 				string modName = bkg.Item2;
-				foreach (var cmpt in cmpts[layerNum])
-				{
-					if (cmpt.Name == "material")
-					{
-						SetMtl(layer, cmpt.InnerText);
-						continue;
-					}
-					if (cmpt.Name == "color")
-					{
-						var rdr = layer.GetComponent<SpriteRenderer>();
-						var uiobj = layer.GetComponent<UI_Object>();
-						rdr.color = XmlToColor(cmpt);
-						if (uiobj != null)
-							uiobj.toColor = rdr.color;
-						continue;
-					}
-
-					var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Name));
-					XmlApply(c, cmpt, modName);
-
-					if (c is ShineLinear sl)
-						sla.Invoke(sl, null);
-					else if (c is ShinePulse sp)
-						spa.Invoke(sp, null);
-					else if (c is TextureLoopScroll tl) {
-						// Just changing the material is enough to make it move, but then
-						// there's still a hard-mask on un-scrolled texture alpha.
-						// Stick to the way the base game does it for now
-						Make3D(layer);
-					}
-					else if (c is DissolveFadeController dfc) {
-						SetMtl(layer, "DissolveFade");
-						dfca.Invoke(dfc, null);
-					}
-					else if (c is DistortionInitialize di) {
-						SetMtl(layer, "NoiseDisplacementMaterial");
-					}
-				}
+				ApplyAnims(layer, cmpts[layerNum], modName);
 			}
 			catch (Exception e) {
 				Patch.ErrorPopup.ShowPriorityText("Error while building scene\nPlease check 'Player.log' file");
@@ -342,6 +348,149 @@ namespace FenLoader
 		{
 			__result = oldString;
 			return false;
+		}
+
+		internal static readonly Dictionary<string, (XmlElement, string)> preyVisuals = new Dictionary<string, (XmlElement, string)>();
+
+		internal static GameObject PreyCreate(string prey, out bool isDyn, out GameObject oblv, out GameObject susp)
+		{
+			isDyn = true;
+			oblv = null;
+			susp = null;
+
+			/* obtain gameobjects for each sprite */
+			GameObject res;
+			if (preyVisuals.TryGetValue(prey, out var sprdefs))
+			{
+				string modName = sprdefs.Item2;
+				modName = modName.Substring(0, modName.Length - 1);
+				modName = modName.Substring(modName.LastIndexOf('/') + 1);
+
+				res = new GameObject();
+				Vector2 bounds = new Vector2(0, 0);
+				foreach (XmlNode sprdef in sprdefs.Item1)
+				{
+					var astance = sprdef.Attributes?["stance"];
+					if (astance == null)
+						continue;
+					var spr = new GameObject(astance.InnerText);
+					spr.transform.parent = res.transform;
+					int i = 0;
+					float scale = 1;
+					Vector2 sprBounds = new Vector2(0, 0);
+					foreach (XmlNode entity in sprdef)
+					{
+						if (entity.Name == "scale")
+							scale = float.Parse(entity.InnerText);
+						if (entity.Name == "entity")
+						{
+							string lyrname = "layer " + i;
+							if (entity.Attributes["aura"]?.Value == "1")
+								lyrname += " aura";
+							var layer = new GameObject(lyrname);
+							layer.transform.parent = spr.transform;
+							layer.transform.localPosition = new Vector3(0, 0, -i);
+							++i;
+							var rdr = layer.AddComponent<SpriteRenderer>();
+							string path = null;
+							var anims = new List<XmlElement>();
+							foreach (XmlNode m in entity)
+							{
+								if (m.Name == "path")
+									path = m.InnerText;
+								else if (m is XmlElement e)
+									anims.Add(e);
+							}
+
+							rdr.sprite = LoadSprite(sprdefs.Item2 + path, null);
+							ApplyAnims(layer, anims, modName);
+							sprBounds.x = Mathf.Max(sprBounds.x, rdr.bounds.size.x);
+							sprBounds.y = Mathf.Max(sprBounds.y, rdr.bounds.size.y);
+						}
+					}
+
+					spr.transform.localScale = new Vector3(scale, scale, 1);
+					bounds.x = Mathf.Max(bounds.x, scale * sprBounds.x);
+					bounds.y = Mathf.Max(bounds.y, scale * sprBounds.y);
+				}
+
+				var coll = res.AddComponent<BoxCollider2D>();
+				coll.size = bounds;
+			}
+			else
+			{
+				// Don't attempt to rebuild new CombatAnimationElement for base game
+				// prey
+				var baseprey = Resources.Load<GameObject>("prey/" + prey + '/' + prey);
+				if (baseprey != null) {
+					isDyn = false;
+					return GameObject.Instantiate(baseprey);
+				}
+				res = new GameObject();
+			}
+
+			var anm = res.AddComponent<CombatAnimationElement>();
+			anm.attackTrigger = new UnityEvent();
+			anm.idleTrigger = new UnityEvent();
+			anm.attackCurve = new AnimationCurve(
+				new Keyframe(0, 0), // base preys actually have different curves for
+				new Keyframe(1, 1) // these fades, but no one will notice
+			);
+			anm.idleCurve = anm.attackCurve;
+
+			/* classify / connect sprites */
+			void grabAura(Transform go, List<SpriteRenderer> o)
+			{
+				foreach (Transform layer in go) {
+					if (layer.name.EndsWith("aura"))
+						o.Add(layer.GetComponent<SpriteRenderer>());
+				}
+			}
+
+			int need = 0x3;
+			var stances = new Dictionary<string, CombatAnimationElement.Stance>();
+			var idleAuras = new List<SpriteRenderer>();
+			foreach (Transform c in res.transform)
+			{
+				string action = c.name;
+				int iu = action.IndexOf('_');
+				if (iu >= 0)
+					action = action.Substring(0, action.Length - iu);
+				string stanceName = "";
+				if (c.name != action)
+					stanceName = c.name.Substring(c.name.Length - action.Length + 1);
+
+				CombatAnimationElement.Stance st = null;
+
+				if (stanceName != "" && !stances.TryGetValue(stanceName, out st)) {
+					st = new CombatAnimationElement.Stance();
+					st.name = stanceName;
+					st.stanceAttackCurve = st.stanceIdleCurve = anm.attackCurve;
+					stances[stanceName] = st;
+				}
+
+				if (c.name.Contains("idle")) {
+					(st == null ? ref anm.idleObject : ref st.stanceIdleObject) = c.gameObject;
+					grabAura(c, idleAuras);
+					need &= ~1;
+				}
+				else if (c.name.Contains("attack")) {
+					(st == null ? ref anm.attackObject : ref st.stanceAttackObject) = c.gameObject;
+					need &= ~2;
+				}
+				else if (c.name.Contains("susp"))
+					susp = c.gameObject;
+				else if (c.name.Contains("obliv"))
+					oblv = c.gameObject;
+			}
+
+			anm.stances = stances.Values.ToArray();
+			anm.idleAura = idleAuras.ToArray();
+
+			if (need != 0)
+				throw new Exception("prey template does not define enough sprites");
+
+			return res;
 		}
 	}
 }

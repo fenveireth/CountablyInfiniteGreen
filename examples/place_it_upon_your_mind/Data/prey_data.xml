@@ -1,6 +1,69 @@
 <prey_data_list>
 	<prey_data>
 		<id>untamedblazetail</id>
+		<sprites>
+			<!-- 'stance' in :
+				"obliv": in stalking phase, oblivious
+				"susp": in stalking phase, suspicious
+				"idle": in combat, shown between turns
+				"attack": in combat, shown during each turn
+				"idle_<element or list of attack IDs>": For opponents with TELLS. This
+					sprite is shown instead of 'idle' if the move it's about to use
+					matches the name. Must be paired with a corresponding attack sprite
+				"attack_<element or list of attack IDs>": see above
+			-->
+			<!-- gfx abilities same as in Background files -->
+			<sprite stance="idle">
+				<scale>.3</scale>
+				<!-- flag as 'aura' to get dynamic colors for awareness / health -->
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+					<material>GlitterBand</material>
+					<ShinePulse>
+						<currentShine>0.2</currentShine>
+						<shineLocationOffset>0</shineLocationOffset>
+						<shineLocationWidth>1</shineLocationWidth>
+						<rate>0.225</rate>
+						<widthShine>0.5</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0.1</alphamin>
+						<alphamax>1</alphamax>
+					</ShinePulse>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/sl.png</path>
+					<material>GlitterRotate</material>
+					<ShineLinear>
+						<rate>0.1</rate>
+						<time_between>8</time_between>
+						<random_start>2</random_start>
+						<widthShine>0.2</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0</alphamin>
+						<alphamax>0.5</alphamax>
+						<effectorigin>
+							<x>0</x>
+							<y>0</y>
+							<z>0.25</z>
+						</effectorigin>
+						<onStart>true</onStart>
+						<widthGrow>false</widthGrow>
+					</ShineLinear>
+				</entity>
+			</sprite>
+			<sprite stance="attack">
+				<scale>.3</scale>
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+				</entity>
+			</sprite>
+		</sprites>
 		<name>Untamed Blazetail</name>
 		<air>51</air>
 		<fire>38</fire>
@@ -32,7 +95,7 @@
 			Most of those need a 'PASSIVE_' prefix, but not all. Did not figure out
 			this mechanism yet. Refer to the prey data from base game
 			- AGONY:
-				Cosmetic: The health aura is forced to Red regardless of creature
+				Cosmetic: The health aura is forced appear as wounded regardless of creature
 				health
 			- ARMOR:
 				Physical damage x0.5 if player fire is stronger than creature earth,
@@ -118,8 +181,8 @@
 		</phase_two_combat_actions>
 		<summoned_creature_name>darksweet</summoned_creature_name>
 		<tells>
-			<call on="PHASE1"></tell>
-			<call on="PHASE2"></tell>
+			<call on="PHASE1"></call>
+			<call on="PHASE2"></call>
 		</tells>
 		<combat_position>0</combat_position>
 		<combat_size_mod>7</combat_size_mod>

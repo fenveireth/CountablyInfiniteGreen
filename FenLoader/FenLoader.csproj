@@ -25,6 +25,9 @@
 		<Reference Include="UnityEngine.InputLegacyModule">
 			<HintPath>../originals/UnityEngine.InputLegacyModule.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.Physics2DModule">
+			<HintPath>../originals/UnityEngine.Physics2DModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.UI">
 			<HintPath>../originals/UnityEngine.UI.dll</HintPath>
 		</Reference>

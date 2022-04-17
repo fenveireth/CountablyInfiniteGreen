@@ -595,5 +595,72 @@ namespace FenLoader
 
 			return true;
 		}
+
+		// louder error
+		[HarmonyPatch(typeof(XMLParser), "GetPreyDataList")]
+		[HarmonyFinalizer]
+		private static Exception PreyXMLAlert(Exception __exception)
+		{
+			if (__exception != null) {
+				Console.Error.WriteLine(__exception);
+				ErrorPopup.ShowPriorityText("Error while loading Prey file.\nPlease check Player.log file");
+			}
+			return null;
+		}
+
+		[HarmonyPatch(typeof(XMLParser), "GetPreyData")]
+		[HarmonyPostfix]
+		static void LoadPreyXML(XmlNode preyData)
+		{
+			string prey = null;
+			XmlElement sprites = null;
+			foreach (XmlNode c in preyData)
+			{
+				if (c.Name == "id")
+					prey = c.InnerText;
+				else if (c.Name == "sprites")
+					sprites = (XmlElement)c;
+			}
+
+			if (sprites == null)
+				Gfx.preyVisuals.Remove(prey);
+			else
+				Gfx.preyVisuals[prey] = (sprites, InMod);
+		}
+
+
+		[HarmonyPatch(typeof(AICombatController), "Load")]
+		[HarmonyPrefix]
+		static bool LoadPrey(SequenceTextController __instance)
+		{
+			string preyname = PlayerAttributes.Instance.GetAttributeString("CURRENT_PREY").Split(';')[0];
+			if (PlayerAttributes.Instance.GetAttributeType("CURRENT_PREY") != typeof(string))
+				preyname = StalkingPhaseEventGenerator.master_prey_list[int.Parse(preyname)];
+
+			GameObject go = Gfx.PreyCreate(preyname, out bool isDyn, out var oblv, out var susp);
+			if (isDyn)
+			{
+				go.SetActive(false);
+				var pi = go.AddComponent<PreyInformation>();
+				pi.load_from_id = preyname;
+				pi.oblivious = oblv;
+				pi.suspicious = susp;
+				go.SetActive(true);
+			}
+			go.tag = "Prey";
+			return true;
+		}
+
+		// louder error
+		[HarmonyPatch(typeof(AICombatController), "Load")]
+		[HarmonyFinalizer]
+		private static Exception PreyLoadAlert(Exception __exception)
+		{
+			if (__exception != null) {
+				Console.Error.WriteLine(__exception);
+				ErrorPopup.ShowPriorityText("Error while spawning Prey.\nPlease check Player.log file");
+			}
+			return null;
+		}
 	}
 }
