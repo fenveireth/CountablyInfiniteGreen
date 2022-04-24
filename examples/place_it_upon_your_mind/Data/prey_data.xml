@@ -19,6 +19,7 @@
 				<entity aura="1">
 					<path>img/fox/aura.png</path>
 					<material>GlitterBand</material>
+					<!-- Aura MUST be animated with 'ShinePulse' -->
 					<ShinePulse>
 						<currentShine>0.2</currentShine>
 						<shineLocationOffset>0</shineLocationOffset>
@@ -61,6 +62,86 @@
 				</entity>
 				<entity>
 					<path>img/fox/base.png</path>
+				</entity>
+			</sprite>
+			<sprite stance="obliv">
+				<scale>.3</scale>
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+					<material>GlitterBand</material>
+					<ShinePulse>
+						<currentShine>0.2</currentShine>
+						<shineLocationOffset>0</shineLocationOffset>
+						<shineLocationWidth>1</shineLocationWidth>
+						<rate>0.225</rate>
+						<widthShine>0.5</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0.1</alphamin>
+						<alphamax>1</alphamax>
+					</ShinePulse>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/sl.png</path>
+					<material>GlitterRotate</material>
+					<ShineLinear>
+						<rate>0.1</rate>
+						<time_between>8</time_between>
+						<random_start>2</random_start>
+						<widthShine>0.2</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0</alphamin>
+						<alphamax>0.5</alphamax>
+						<effectorigin>
+							<x>0</x>
+							<y>0</y>
+							<z>0.25</z>
+						</effectorigin>
+						<onStart>true</onStart>
+						<widthGrow>false</widthGrow>
+					</ShineLinear>
+				</entity>
+			</sprite>
+			<sprite stance="susp">
+				<scale>.3</scale>
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+					<material>GlitterBand</material>
+					<ShinePulse>
+						<currentShine>0.2</currentShine>
+						<shineLocationOffset>0</shineLocationOffset>
+						<shineLocationWidth>1</shineLocationWidth>
+						<rate>0.225</rate>
+						<widthShine>0.5</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0.1</alphamin>
+						<alphamax>1</alphamax>
+					</ShinePulse>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/sl.png</path>
+					<material>GlitterRotate</material>
+					<ShineLinear>
+						<rate>0.1</rate>
+						<time_between>8</time_between>
+						<random_start>2</random_start>
+						<widthShine>0.2</widthShine>
+						<ovalRatio>1</ovalRatio>
+						<alphamin>0</alphamin>
+						<alphamax>0.5</alphamax>
+						<effectorigin>
+							<x>0</x>
+							<y>0</y>
+							<z>0.25</z>
+						</effectorigin>
+						<onStart>true</onStart>
+						<widthGrow>false</widthGrow>
+					</ShineLinear>
 				</entity>
 			</sprite>
 		</sprites>
@@ -185,10 +266,10 @@
 			<call on="PHASE2"></call>
 		</tells>
 		<combat_position>0</combat_position>
-		<combat_size_mod>7</combat_size_mod>
-		<far_size_mod>2</far_size_mod>
-		<near_size_mod>6</near_size_mod>
-		<immediate_size_mod>12</immediate_size_mod>
+		<combat_size_mod>1</combat_size_mod> <!-- does not work -->
+		<far_size_mod>.2</far_size_mod>
+		<near_size_mod>.6</near_size_mod>
+		<immediate_size_mod>1.2</immediate_size_mod>
 		<chase_height_offset>5</chase_height_offset>
 		<!-- Outside of hunting grounds, can be overwritten from scenario by temp variable -->
 		<success_location>hunt_blazetail_slain_event</success_location>

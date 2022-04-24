@@ -412,6 +412,7 @@ namespace FenLoader
 					spr.transform.localScale = new Vector3(scale, scale, 1);
 					bounds.x = Mathf.Max(bounds.x, scale * sprBounds.x);
 					bounds.y = Mathf.Max(bounds.y, scale * sprBounds.y);
+					spr.SetActive(false);
 				}
 
 				var coll = res.AddComponent<BoxCollider2D>();
@@ -447,7 +448,7 @@ namespace FenLoader
 				}
 			}
 
-			int need = 0x3;
+			int need = 0xF;
 			var stances = new Dictionary<string, CombatAnimationElement.Stance>();
 			var idleAuras = new List<SpriteRenderer>();
 			foreach (Transform c in res.transform)
@@ -478,10 +479,14 @@ namespace FenLoader
 					(st == null ? ref anm.attackObject : ref st.stanceAttackObject) = c.gameObject;
 					need &= ~2;
 				}
-				else if (c.name.Contains("susp"))
+				else if (c.name.Contains("susp")) {
 					susp = c.gameObject;
-				else if (c.name.Contains("obliv"))
+					need &= ~4;
+				}
+				else if (c.name.Contains("obliv")) {
 					oblv = c.gameObject;
+					need &= ~8;
+				}
 			}
 
 			anm.stances = stances.Values.ToArray();

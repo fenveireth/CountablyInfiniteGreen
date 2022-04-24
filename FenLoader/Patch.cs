@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Xml;
 using TMPro;
 using UnityEngine;
@@ -628,10 +629,7 @@ namespace FenLoader
 				Gfx.preyVisuals[prey] = (sprites, InMod);
 		}
 
-
-		[HarmonyPatch(typeof(AICombatController), "Load")]
-		[HarmonyPrefix]
-		static bool LoadPrey(SequenceTextController __instance)
+		static GameObject LoadPrey()
 		{
 			string preyname = PlayerAttributes.Instance.GetAttributeString("CURRENT_PREY").Split(';')[0];
 			if (PlayerAttributes.Instance.GetAttributeType("CURRENT_PREY") != typeof(string))
@@ -645,14 +643,36 @@ namespace FenLoader
 				pi.load_from_id = preyname;
 				pi.oblivious = oblv;
 				pi.suspicious = susp;
+				foreach (Transform c in susp.transform) {
+					if (c.name.Contains("aura"))
+						pi.suspAura = c.GetComponent<SpriteRenderer>();
+				}
 				go.SetActive(true);
 			}
 			go.tag = "Prey";
+			return go;
+		}
+
+		[HarmonyPatch(typeof(AICombatController), "Load")]
+		[HarmonyPrefix]
+		static bool FightPrey()
+		{
+			var prev = GameObject.FindGameObjectWithTag("Prey"); // from Stalk phase
+			if (prev != null)
+			{
+				foreach (Transform c in prev.transform)
+					c.gameObject.SetActive(false);
+				prev.transform.localScale = Vector3.one;
+				return true;
+			}
+
+			LoadPrey();
 			return true;
 		}
 
 		// louder error
 		[HarmonyPatch(typeof(AICombatController), "Load")]
+		[HarmonyPatch(typeof(StalkingPhaseEventGenerator), "Start")]
 		[HarmonyFinalizer]
 		private static Exception PreyLoadAlert(Exception __exception)
 		{
@@ -661,6 +681,35 @@ namespace FenLoader
 				ErrorPopup.ShowPriorityText("Error while spawning Prey.\nPlease check Player.log file");
 			}
 			return null;
+		}
+
+		[HarmonyPatch(typeof(StalkingPhaseEventGenerator), "OnBegin")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> HuntPrey(IEnumerable<CodeInstruction> instrs)
+		{
+			int nbGetPA = 0;
+			var pa = AccessTools.Field(typeof(PlayerAttributes), "Instance");
+			var gt = AccessTools.Method(typeof(GameObject), "get_transform");
+			bool eat = false;
+			foreach (var inst in instrs)
+			{
+				if (inst.operand is FieldInfo f && f == pa)
+				{
+					++nbGetPA;
+					if (nbGetPA == 3) {
+						eat = true;
+						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patch), "LoadPrey"));
+						yield return new CodeInstruction(OpCodes.Stloc_1);
+						yield return new CodeInstruction(OpCodes.Ldloc_1);
+					}
+				}
+
+				if (eat && inst.operand is MethodInfo m && m == gt)
+					eat = false;
+
+				if (!eat)
+					yield return inst;
+			}
 		}
 	}
 }
