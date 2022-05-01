@@ -13,6 +13,7 @@
 				"attack_<element or list of attack IDs>": see above
 			-->
 			<!-- gfx abilities same as in Background files -->
+			<!-- Clickable size (and some positioning) depends on summed bounds of all sprites -->
 			<sprite stance="idle">
 				<scale>.3</scale>
 				<!-- flag as 'aura' to get dynamic colors for awareness / health -->
@@ -144,6 +145,38 @@
 					</ShineLinear>
 				</entity>
 			</sprite>
+			<!--
+				'running' stances must be trivial images.
+				They are automatically animated a bit
+			-->
+			<sprite stance="running1">
+				<scale>2</scale>
+				<entity>
+					<transform>
+						<position>
+							<y>10</y>
+						</position>
+						<rotation>
+							<z>10</z>
+						</rotation>
+					</transform>
+					<path>img/fox/chase.png</path>
+				</entity>
+			</sprite>
+			<sprite stance="running2">
+				<scale>2</scale>
+				<entity>
+					<transform>
+						<position>
+							<y>10</y>
+						</position>
+						<rotation>
+							<z>-10</z>
+						</rotation>
+					</transform>
+					<path>img/fox/chase.png</path>
+				</entity>
+			</sprite>
 		</sprites>
 		<name>Untamed Blazetail</name>
 		<air>51</air>
@@ -270,7 +303,17 @@
 		<far_size_mod>.2</far_size_mod>
 		<near_size_mod>.6</near_size_mod>
 		<immediate_size_mod>1.2</immediate_size_mod>
+		<!--
+			Elevates you, not the prey
+			Be aware the game also moves/resizes things in chase view depending
+			on 'ACT' variable
+		-->
 		<chase_height_offset>5</chase_height_offset>
+		<!--
+			TODO offer a way to program movement during the chase
+			Needs 'AnimationCurve'
+			For now all custom prey use a copy of 'blazetail'
+		-->
 		<!-- Outside of hunting grounds, can be overwritten from scenario by temp variable -->
 		<success_location>hunt_blazetail_slain_event</success_location>
 	</prey_data>

@@ -235,6 +235,19 @@ namespace FenLoader
 						uiobj.toColor = rdr.color;
 					continue;
 				}
+				if (cmpt.Name == "transform")
+				{
+					foreach (XmlNode e in cmpt)
+					{
+						if (e.Name == "position")
+							layer.transform.localPosition = XMLParser.XMLToVector3(e, false);
+						if (e.Name == "rotation")
+							layer.transform.localEulerAngles = XMLParser.XMLToVector3(e, false);
+						if (e.Name == "scale")
+							layer.transform.localScale = XMLParser.XMLToVector3(e, false);
+					}
+					continue;
+				}
 
 				var c = layer.AddComponent(AccessTools.TypeByName(cmpt.Name));
 				XmlApply(c, cmpt, modName);
@@ -352,6 +365,68 @@ namespace FenLoader
 
 		internal static readonly Dictionary<string, (XmlElement, string)> preyVisuals = new Dictionary<string, (XmlElement, string)>();
 
+		static GameObject PreyCreateSprites(XmlElement sprdefs, string modPath)
+		{
+			string modName = modPath.Substring(0, modPath.Length - 1);
+			modName = modName.Substring(modName.LastIndexOf('/') + 1);
+
+			GameObject res = new GameObject();
+			Vector2 bounds = new Vector2(0, 0);
+			foreach (XmlNode sprdef in sprdefs)
+			{
+				var astance = sprdef.Attributes?["stance"];
+				if (astance == null)
+					continue;
+				string stance = astance.InnerText;
+				var spr = new GameObject(stance);
+				spr.transform.parent = res.transform;
+				int i = 0;
+				float scale = 1;
+				Vector2 sprBounds = new Vector2(0, 0);
+				foreach (XmlNode entity in sprdef)
+				{
+					if (entity.Name == "scale")
+					scale = float.Parse(entity.InnerText);
+					if (entity.Name == "entity")
+					{
+						string lyrname = "layer " + i;
+						if (entity.Attributes["aura"]?.Value == "1")
+							lyrname += " aura";
+						var layer = new GameObject(lyrname);
+						layer.transform.parent = spr.transform;
+						layer.transform.localPosition = new Vector3(0, 0, -i);
+						++i;
+						var rdr = layer.AddComponent<SpriteRenderer>();
+						string path = null;
+						var anims = new List<XmlElement>();
+						foreach (XmlNode m in entity)
+						{
+							if (m.Name == "path")
+								path = m.InnerText;
+							else if (m is XmlElement e)
+								anims.Add(e);
+						}
+
+						rdr.sprite = LoadSprite(modPath + path, null);
+						ApplyAnims(layer, anims, modName);
+						if (!stance.StartsWith("running")) {
+							sprBounds.x = Mathf.Max(sprBounds.x, rdr.bounds.size.x);
+							sprBounds.y = Mathf.Max(sprBounds.y, rdr.bounds.size.y);
+						}
+					}
+				}
+
+				spr.transform.localScale = new Vector3(scale, scale, 1);
+				bounds.x = Mathf.Max(bounds.x, scale * sprBounds.x);
+				bounds.y = Mathf.Max(bounds.y, scale * sprBounds.y);
+				spr.SetActive(false);
+			}
+
+			var coll = res.AddComponent<BoxCollider2D>();
+			coll.size = bounds;
+			return res;
+		}
+
 		internal static GameObject PreyCreate(string prey, out bool isDyn, out GameObject oblv, out GameObject susp)
 		{
 			isDyn = true;
@@ -361,63 +436,7 @@ namespace FenLoader
 			/* obtain gameobjects for each sprite */
 			GameObject res;
 			if (preyVisuals.TryGetValue(prey, out var sprdefs))
-			{
-				string modName = sprdefs.Item2;
-				modName = modName.Substring(0, modName.Length - 1);
-				modName = modName.Substring(modName.LastIndexOf('/') + 1);
-
-				res = new GameObject();
-				Vector2 bounds = new Vector2(0, 0);
-				foreach (XmlNode sprdef in sprdefs.Item1)
-				{
-					var astance = sprdef.Attributes?["stance"];
-					if (astance == null)
-						continue;
-					var spr = new GameObject(astance.InnerText);
-					spr.transform.parent = res.transform;
-					int i = 0;
-					float scale = 1;
-					Vector2 sprBounds = new Vector2(0, 0);
-					foreach (XmlNode entity in sprdef)
-					{
-						if (entity.Name == "scale")
-							scale = float.Parse(entity.InnerText);
-						if (entity.Name == "entity")
-						{
-							string lyrname = "layer " + i;
-							if (entity.Attributes["aura"]?.Value == "1")
-								lyrname += " aura";
-							var layer = new GameObject(lyrname);
-							layer.transform.parent = spr.transform;
-							layer.transform.localPosition = new Vector3(0, 0, -i);
-							++i;
-							var rdr = layer.AddComponent<SpriteRenderer>();
-							string path = null;
-							var anims = new List<XmlElement>();
-							foreach (XmlNode m in entity)
-							{
-								if (m.Name == "path")
-									path = m.InnerText;
-								else if (m is XmlElement e)
-									anims.Add(e);
-							}
-
-							rdr.sprite = LoadSprite(sprdefs.Item2 + path, null);
-							ApplyAnims(layer, anims, modName);
-							sprBounds.x = Mathf.Max(sprBounds.x, rdr.bounds.size.x);
-							sprBounds.y = Mathf.Max(sprBounds.y, rdr.bounds.size.y);
-						}
-					}
-
-					spr.transform.localScale = new Vector3(scale, scale, 1);
-					bounds.x = Mathf.Max(bounds.x, scale * sprBounds.x);
-					bounds.y = Mathf.Max(bounds.y, scale * sprBounds.y);
-					spr.SetActive(false);
-				}
-
-				var coll = res.AddComponent<BoxCollider2D>();
-				coll.size = bounds;
-			}
+				res = PreyCreateSprites(sprdefs.Item1, sprdefs.Item2);
 			else
 			{
 				// Don't attempt to rebuild new CombatAnimationElement for base game
@@ -493,7 +512,7 @@ namespace FenLoader
 			anm.idleAura = idleAuras.ToArray();
 
 			if (need != 0)
-				throw new Exception("prey template does not define enough sprites");
+				throw new Exception($"prey template '{prey}' does not define enough sprites");
 
 			return res;
 		}

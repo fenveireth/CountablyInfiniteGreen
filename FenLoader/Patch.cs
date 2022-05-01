@@ -654,6 +654,7 @@ namespace FenLoader
 		}
 
 		[HarmonyPatch(typeof(AICombatController), "Load")]
+		[HarmonyPatch(typeof(ChaseManager), "Start")]
 		[HarmonyPrefix]
 		static bool FightPrey()
 		{
@@ -661,20 +662,31 @@ namespace FenLoader
 			if (prev != null)
 			{
 				foreach (Transform c in prev.transform)
-					c.gameObject.SetActive(false);
+				{
+					// Hide all unrelated stances
+					// But keep GemHolder menu driver
+					if (c.GetComponent<UI_Manager>() == null)
+						c.gameObject.SetActive(false);
+				}
+				// reset stalk zoom
 				prev.transform.localScale = Vector3.one;
 				return true;
 			}
 
-			LoadPrey();
+			var go = LoadPrey();
+			var pi = go.GetComponent<PreyInformation>();
+			// for 'chase' console cmd
+			pi.distance = Mathf.RoundToInt(PlayerAttributes.Instance.GetAttribute("HUNTING_DISTANCE"));
+			PlayerAttributes.Instance.SetAttribute("HUNTING_DISTANCE", 0f);
 			return true;
 		}
 
 		// louder error
 		[HarmonyPatch(typeof(AICombatController), "Load")]
 		[HarmonyPatch(typeof(StalkingPhaseEventGenerator), "Start")]
+		[HarmonyPatch(typeof(ChaseManager), "Start")]
 		[HarmonyFinalizer]
-		private static Exception PreyLoadAlert(Exception __exception)
+		static Exception PreyLoadAlert(Exception __exception)
 		{
 			if (__exception != null) {
 				Console.Error.WriteLine(__exception);
@@ -709,6 +721,54 @@ namespace FenLoader
 
 				if (!eat)
 					yield return inst;
+			}
+		}
+
+		static GameObject ChasePrey(GameObject baseRes)
+		{
+			if (baseRes)
+				return baseRes;
+
+			GameObject res = GameObject.Instantiate(Resources.Load("prey/blazetail/Blazetail_Chase") as GameObject);
+			var s0 = res.transform.GetChild(0).GetComponent<SpriteRenderer>();
+			var s1 = res.transform.GetChild(1).GetComponent<SpriteRenderer>();
+			var col = res.GetComponent<CircleCollider2D>();
+			s0.sprite = null;
+			s1.sprite = null;
+			col.radius = 0;
+			col.offset = Vector2.zero;
+
+			var prey = GameObject.FindGameObjectWithTag("Prey");
+			foreach (Transform c in prey.transform)
+			{
+				if (c.name == "running1" || c.name == "running2") {
+					var runner = c.name == "running1" ? s0 : s1;
+					var ent0 = c.GetChild(0);
+					runner.sprite = ent0?.GetComponent<SpriteRenderer>()?.sprite;
+					runner.transform.localPosition = ent0?.transform?.localPosition ?? runner.transform.localPosition;
+					runner.transform.localEulerAngles = ent0?.transform?.localEulerAngles ?? runner.transform.localEulerAngles;
+					runner.transform.localScale = ent0?.transform?.localScale ?? runner.transform.localScale;
+					runner.transform.localScale *= c.localScale.x;
+
+					col.radius = Mathf.Max(col.radius, runner.bounds.size.x / 2);
+				}
+			}
+
+			return res;
+		}
+
+		[HarmonyPatch(typeof(ChaseManager), "Start")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> ChasePreyConnect(IEnumerable<CodeInstruction> instrs)
+		{
+			foreach (var inst in instrs)
+			{
+				if (inst.operand?.ToString() == "UnityEngine.GameObject Instantiate[GameObject](UnityEngine.GameObject)")
+				{
+					inst.operand = AccessTools.Method(typeof(Patch), "ChasePrey");
+				}
+
+				yield return inst;
 			}
 		}
 	}
