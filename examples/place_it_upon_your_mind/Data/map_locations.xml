@@ -3,6 +3,7 @@
 	When it detects a change, it will reload it and reset the current scene
 -->
 <root>
+	<!-- Base case -->
 	<map_location>
 		<id>act1_jump</id> <!-- one namespace so you can override other mods -->
 		<map>heartbonevalley_map</map> <!-- name of map event -->
@@ -32,6 +33,34 @@
 			</position>
 			<scale> <!-- Needs different scales for each map -->
 				<x>0.45</x>
+				<y>0.5</y>
+			</scale>
+		</transform>
+	</map_location>
+	<!-- Add new hunting ground -->
+	<map_location>
+		<id>act2_foxexamplehg</id>
+		<map>GreatGreenAct2_Map</map>
+		<zone_id>10</zone_id>
+		<option_name>ExampleHuntingGround</option_name>
+		<icon_path>fox_icon</icon_path>
+		<!-- Icon color is set automatically, depending on animal population -->
+		<!-- It will also get disabled if depleted -->
+		<hunting_ground>
+			<id>fox_example</id>
+			<!-- override timer for population regen
+				-1, the default, to keep game-wide value (5 Suns I guess) -->
+			<cycle_time>-1</cycle_time>
+		</hunting_ground>
+		<!-- but base color is still visible once during exploration -->
+		<icon_color>green</icon_color>
+		<transform>
+			<position>
+				<x>-4.5</x>
+				<y>0.15</y>
+			</position>
+			<scale>
+				<x>0.5</x>
 				<y>0.5</y>
 			</scale>
 		</transform>

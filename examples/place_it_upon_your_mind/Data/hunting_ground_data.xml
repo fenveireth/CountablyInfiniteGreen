@@ -1,0 +1,33 @@
+<hunting_grounds>
+	<hunting_ground>
+		<id>foxexample</id>
+		<event_body>There are several scents on the air, one familiar to this place, but a few others. Which will you follow?</event_body>
+		<hunt_complete_event_body>Sun hangs low in the sky, signalling the end of this hunt.</hunt_complete_event_body>
+		<prey_list>
+			<prey_list_entry>
+				<prey_id>greatslideclaw</prey_id>
+				<prey_probability>20</prey_probability>
+			</prey_list_entry>
+			<prey_list_entry>
+				<prey_id>hillback</prey_id>
+				<prey_probability>20</prey_probability>
+			</prey_list_entry>
+			<prey_list_entry>
+				<prey_id>greatgrazer</prey_id>
+				<prey_probability>20</prey_probability>
+			</prey_list_entry>
+			<prey_list_entry>
+				<prey_id>blazetail</prey_id>
+				<prey_probability>20</prey_probability>
+			</prey_list_entry>
+			<prey_list_entry>
+				<prey_id>dayskyclaw</prey_id>
+				<prey_probability>10</prey_probability>
+			</prey_list_entry>
+			<prey_list_entry>
+				<prey_id>nightskyclaw</prey_id>
+				<prey_probability>10</prey_probability>
+			</prey_list_entry>
+		</prey_list>
+	</hunting_ground>
+</hunting_grounds>

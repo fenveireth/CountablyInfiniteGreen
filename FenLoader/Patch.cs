@@ -452,6 +452,21 @@ namespace FenLoader
 			return true;
 		}
 
+		// Augment Map with hunting grounds
+		static Dictionary<string, XmlNode> mapHuntingGrounds = new Dictionary<string, XmlNode>();
+
+		[HarmonyPatch(typeof(XMLParser), "GetMapLocation")]
+		[HarmonyPostfix]
+		static void LoadMap(ref MapLocationData.LocationData __result, XmlNode locationNode)
+		{
+			mapHuntingGrounds.Remove(__result.id);
+			foreach (XmlNode e in locationNode)
+			{
+				if (e.Name == "hunting_ground")
+					mapHuntingGrounds[__result.id] = e;
+			}
+		}
+
 		// Custom map icons
 		private static Sprite LoadSpriteMap(string path)
 		{
@@ -478,10 +493,10 @@ namespace FenLoader
 
 		private static FieldInfo fogScale = typeof(LocationDisplayElement).GetField("ogScale", BindingFlags.NonPublic | BindingFlags.Instance);
 
-		// Fix scale for map icons
+		// Fix scale for map icons + create hunting grounds
 		[HarmonyPatch(typeof(ZoneManager), "AddLocation")]
 		[HarmonyPostfix]
-		private static void MapIconScale(ZoneManager __instance, ref MapLocationData.LocationData data)
+		static void MapIconScale(ZoneManager __instance, ref MapLocationData.LocationData data)
 		{
 			// Scale in stored in Behavior on "Awake", which is only correct for prefabs
 			Transform lt = null;
@@ -489,6 +504,64 @@ namespace FenLoader
 				lt = t;
 			var ui = lt.GetComponent<LocationDisplayElement>();
 			fogScale.SetValue(ui, data.local_scale * 0.15f);
+
+			if (mapHuntingGrounds.TryGetValue(data.id, out XmlNode def))
+			{
+				var hg = lt.gameObject.AddComponent<HuntingGrounds>();
+				hg.cycleTime = -1;
+				hg.useEvent = false;
+				foreach (XmlNode e in def)
+				{
+					if (e.Name == "id")
+						hg.groundName = e.InnerText;
+					if (e.Name == "cycle_time")
+						hg.cycleTime = int.Parse(e.InnerText);
+				}
+			}
+		}
+
+		// Allow addition of new hunting grounds during a game
+		[HarmonyPatch(typeof(PreyEnvironmentManager), "AddMap")]
+		[HarmonyPrefix]
+		static bool HGAddMap(PreyEnvironmentManager __instance, MapManager map)
+		{
+			__instance.currentMap = map.province_name;
+			PreyEnvironmentManager.MapPreyInfo mapPreyInfo = null;
+			foreach (var forMap in __instance.MapPopulation) {
+				if (forMap.MapName == map.province_name)
+					mapPreyInfo = forMap;
+			}
+			if (mapPreyInfo == null) {
+				mapPreyInfo = new PreyEnvironmentManager.MapPreyInfo();
+				mapPreyInfo.MapName = map.province_name;
+				__instance.MapPopulation.Add(mapPreyInfo);
+			}
+			foreach (ZoneManager zone in map.GetComponentsInChildren<ZoneManager>(includeInactive: true))
+			{
+				foreach (HuntingGrounds hg in zone.GetComponentsInChildren<HuntingGrounds>(includeInactive: true))
+				{
+					PreyEnvironmentManager.HuntingGroundInfo prev = null;
+					foreach (var info in mapPreyInfo.groundsInfo) {
+						if (info.groundName == hg.groundName)
+							prev = info;
+					}
+					if (prev == null) {
+						var item = new PreyEnvironmentManager.HuntingGroundInfo(zone.zone_num, "", hg.groundName, 0, 0, hg.cycleTime);
+						mapPreyInfo.groundsInfo.Add(item);
+					}
+				}
+			}
+
+			return false;
+		}
+
+		// Otherwise dead hunting grounds remain clickable
+		[HarmonyPatch(typeof(HuntingGrounds), "Start")]
+		[HarmonyPostfix]
+		static void HGGreyOut(HuntingGrounds __instance)
+		{
+			bool active = __instance.GetComponent<LocationDisplayElement>().active;
+			__instance.GetComponent<UI_Button>().SetEnabled(active);
 		}
 
 		// Gallery: search backgrounds in mods
@@ -629,11 +702,14 @@ namespace FenLoader
 				Gfx.preyVisuals[prey] = (sprites, InMod);
 		}
 
-		static GameObject LoadPrey()
+		static GameObject LoadPrey(string preyname)
 		{
-			string preyname = PlayerAttributes.Instance.GetAttributeString("CURRENT_PREY").Split(';')[0];
-			if (PlayerAttributes.Instance.GetAttributeType("CURRENT_PREY") != typeof(string))
-				preyname = StalkingPhaseEventGenerator.master_prey_list[int.Parse(preyname)];
+			bool collectingScents = false;
+			if (preyname.Contains("/")) {
+				collectingScents = true;
+				var s = preyname.Split('/');
+				preyname = s[s.Length - 1];
+			}
 
 			GameObject go = Gfx.PreyCreate(preyname, out bool isDyn, out var oblv, out var susp);
 			if (isDyn)
@@ -649,8 +725,19 @@ namespace FenLoader
 				}
 				go.SetActive(true);
 			}
-			go.tag = "Prey";
+			if (collectingScents)
+				go.SetActive(false);
+			else
+				go.tag = "Prey";
 			return go;
+		}
+
+		static GameObject LoadCurrentPrey()
+		{
+			string preyname = PlayerAttributes.Instance.GetAttributeString("CURRENT_PREY").Split(';')[0];
+			if (PlayerAttributes.Instance.GetAttributeType("CURRENT_PREY") != typeof(string))
+				preyname = StalkingPhaseEventGenerator.master_prey_list[int.Parse(preyname)];
+			return LoadPrey(preyname);
 		}
 
 		[HarmonyPatch(typeof(AICombatController), "Load")]
@@ -673,7 +760,7 @@ namespace FenLoader
 				return true;
 			}
 
-			var go = LoadPrey();
+			var go = LoadCurrentPrey();
 			var pi = go.GetComponent<PreyInformation>();
 			// for 'chase' console cmd
 			pi.distance = Mathf.RoundToInt(PlayerAttributes.Instance.GetAttribute("HUNTING_DISTANCE"));
@@ -685,6 +772,7 @@ namespace FenLoader
 		[HarmonyPatch(typeof(AICombatController), "Load")]
 		[HarmonyPatch(typeof(StalkingPhaseEventGenerator), "Start")]
 		[HarmonyPatch(typeof(ChaseManager), "Start")]
+		[HarmonyPatch(typeof(HuntingGroundEventGenerator), "Start")]
 		[HarmonyFinalizer]
 		static Exception PreyLoadAlert(Exception __exception)
 		{
@@ -710,7 +798,7 @@ namespace FenLoader
 					++nbGetPA;
 					if (nbGetPA == 3) {
 						eat = true;
-						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patch), "LoadPrey"));
+						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patch), "LoadCurrentPrey"));
 						yield return new CodeInstruction(OpCodes.Stloc_1);
 						yield return new CodeInstruction(OpCodes.Ldloc_1);
 					}
@@ -727,7 +815,7 @@ namespace FenLoader
 		static GameObject ChasePrey(GameObject baseRes)
 		{
 			if (baseRes)
-				return baseRes;
+				return GameObject.Instantiate(baseRes);
 
 			GameObject res = GameObject.Instantiate(Resources.Load("prey/blazetail/Blazetail_Chase") as GameObject);
 			var s0 = res.transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -768,6 +856,19 @@ namespace FenLoader
 					inst.operand = AccessTools.Method(typeof(Patch), "ChasePrey");
 				}
 
+				yield return inst;
+			}
+		}
+
+		[HarmonyPatch(typeof(HuntingGroundEventGenerator), "ScentSelectionGenerator")]
+		[HarmonyTranspiler]
+		static IEnumerable<CodeInstruction> HuntCollectScents(IEnumerable<CodeInstruction> instrs)
+		{
+			var mine = AccessTools.Method(typeof(Patch), "LoadPrey");
+			foreach (var inst in instrs)
+			{
+				if (inst.operand?.ToString() == "UnityEngine.Object Load(System.String)")
+					inst.operand = mine;
 				yield return inst;
 			}
 		}

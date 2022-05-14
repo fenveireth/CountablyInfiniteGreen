@@ -1,0 +1,19 @@
+% Demonstrate:
+% - Add hunting ground, map event part
+
+% See also hunting_grounds_data.xml, and map_icons.xml
+
+\eventModify{greatgreenact2_map}
+\option [ExampleHuntingGround]
+\soundStop{MapMus} \soundStop{MapAmb}
+\set{TEMP_BASE_PREY = untamedblazetail} % First pick, presence guaranteed
+\set{TEMP_SCENTS = 2} % Nb of extra prey to pick at random from XML
+\set{TEMP_HUNTING_TABLE = foxexample} % in hunting_grounds_data.xml
+\set{TEMP_MAX_HUNTS = 3}
+% Hunt + fight Backgrounds
+% Cannot create custom locations yet : use 'forest', 'marsh' or 'plains'
+% Trying to hunt in a location that only defines a fight area will probably
+% cause an error
+\set{HUNTING_GROUND = plains}
+\set{CURRENT_HUNTING_GROUND = fox_example} % Map entry for population tracking
+\transition{fade} \go{HuntingGroundGenerator}
