@@ -110,7 +110,8 @@ namespace FenLoader
 
 				var f = AccessTools.Field(c.GetType(), m.Name);
 
-				if (f.FieldType.IsClass && f.FieldType != typeof(Texture2D)) {
+				if (f.FieldType.IsClass && f.FieldType != typeof(Texture2D)
+						&& f.FieldType != typeof(string)) {
 					XmlApply(f.GetValue(c), (XmlElement)m, modName);
 					continue;
 				}
@@ -125,7 +126,7 @@ namespace FenLoader
 				else if (f.FieldType == typeof(Vector2))
 					val = XmlToVec2(m);
 				else if (f.FieldType == typeof(Vector3))
-					val = XMLParser.XMLToVector3(m);
+					val = XMLParser.XMLToVector3(m, false);
 				else if (f.FieldType == typeof(Color))
 					val = XmlToColor(m);
 				else if (f.FieldType == typeof(Texture2D)) {
@@ -267,6 +268,11 @@ namespace FenLoader
 				}
 				else if (c is DistortionInitialize di) {
 					SetMtl(layer, "NoiseDisplacementMaterial");
+				} else if (c is HuntingBackground hb) {
+					hb.img_combat = layer.GetComponent<SpriteRenderer>()?.sprite;
+					hb.ambName = hb.ambName ?? "";
+					hb.ambEffectName = hb.ambEffectName ?? "";
+					hb.loadedFoliage = new GameObject[0];
 				}
 			}
 		}
@@ -515,6 +521,37 @@ namespace FenLoader
 				throw new Exception($"prey template '{prey}' does not define enough sprites");
 
 			return res;
+		}
+
+		[HarmonyPatch(typeof(ActionManager), "Start")]
+		[HarmonyPrefix]
+		static bool LoadFightLocation()
+		{
+			if (GameObject.FindGameObjectWithTag("HuntingGround"))
+				return true;
+
+			string bkid = PlayerAttributes.Instance.GetAttributeString("HUNTING_GROUND");
+			if (backgroundAnims.TryGetValue(bkid, out (List<List<XmlElement>>, string) res)) {
+				string modname = res.Item2;
+				EventChanger.Instance.LoadBackgroundImage("mod:" + bkid);
+				var hg = EventChanger.Instance.image_to_load.GetComponentInChildren<HuntingBackground>();
+				if (hg == null)
+					throw new Exception("No 'HuntingBackground' found for " + bkid);
+				hg.gameObject.tag = "HuntingGround";
+			}
+
+			return true;
+		}
+
+		[HarmonyPatch(typeof(ActionManager), "Start")]
+		[HarmonyFinalizer]
+		static Exception LoadFightLocationException(Exception __exception)
+		{
+			if (__exception != null) {
+				Console.Error.WriteLine(__exception);
+				Patch.ErrorPopup.ShowPriorityText("Error while spawning Prey.\nPlease check Player.log file");
+			}
+			return null;
 		}
 	}
 }

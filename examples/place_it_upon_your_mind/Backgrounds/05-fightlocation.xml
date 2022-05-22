@@ -1,0 +1,84 @@
+<!--
+	Demonstrate:
+	- Create a location that can be used for combat
+		(target for \set{HUNTING_GROUND = ...})
+-->
+<backgrounds>
+	<background>
+		<background_name>example_dance_location</background_name>
+		<base_image_width>1778</base_image_width>
+		<scale>.5</scale>
+		<parallax_speed>0</parallax_speed>
+		<entity>
+			<path>base:backgrounds/huntinggrounds/salamander@SALAMANDER</path>
+			<HuntingBackground>
+				<combat_scale_max>
+					<x>0.6</x>
+					<y>0.6</y>
+					<z>1</z>
+				</combat_scale_max>
+				<combat_scale_min>
+					<x>0.475</x>
+					<y>0.475</y>
+					<z>1</z>
+				</combat_scale_min>
+				<maxAllowedSize>7</maxAllowedSize>
+				<sizeThreshold>4</sizeThreshold>
+				<playerCombatLocation>
+					<x>-1.25</x>
+					<y>1</y>
+					<z>-0.2</z>
+				</playerCombatLocation>
+				<playerIdleLocation>
+					<x>-4.5</x>
+					<y>0.85</y>
+					<z>-0.2</z>
+				</playerIdleLocation>
+				<enemyCombatLocation>
+					<x>-3.25</x>
+					<y>0</y>
+					<z>-0.2</z>
+				</enemyCombatLocation>
+				<enemyIdleLocation>
+					<x>4.5</x>
+					<y>0.5</y>
+					<z>-0.2</z>
+				</enemyIdleLocation>
+				<!-- background tint applied if HUNTING_NIGHT = 1 -->
+				<bkgNightTint>
+					<r>.2</r>
+					<g>1</g>
+					<b>.2</b>
+				</bkgNightTint>
+				<!-- player + creature tint applied if HUNTING_NIGHT = 1 -->
+				<bkgActorColor>
+					<b>1</b>
+					<g>0.38513562</g>
+					<r>0.3500356</r>
+				</bkgActorColor>
+				<!-- opponent stats popup position
+					Unconveniently defaults to center of screen -->
+				<firePosition>
+					<x>-2.6025</x>
+					<y>3.5</y>
+				</firePosition>
+				<earthPosition>
+					<x>0.875</x>
+					<y>3.5</y>
+				</earthPosition>
+				<waterPosition>
+					<x>-0.875</x>
+					<y>3.5</y>
+				</waterPosition>
+				<airPosition>
+					<x>2.6025</x>
+					<y>3.5</y>
+				</airPosition>
+				<!-- Extra sound. empty (the default) for silence
+					Currently limited to base game sounds -->
+				<ambName></ambName>
+				<ambEffectName></ambEffectName>
+			</HuntingBackground>
+		</entity>
+	</background>
+</backgrounds>
