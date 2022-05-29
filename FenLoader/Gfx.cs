@@ -482,35 +482,37 @@ namespace FenLoader
 				int iu = action.IndexOf('_');
 				if (iu >= 0)
 					action = action.Substring(0, action.Length - iu);
-				string stanceName = "";
+				string stanceList = "";
 				if (c.name != action)
-					stanceName = c.name.Substring(c.name.Length - action.Length + 1);
+					stanceList = c.name.Substring(c.name.Length - action.Length + 1);
 
-				CombatAnimationElement.Stance st = null;
+				foreach (string stanceName in stanceList.Split(';'))
+				{
+					CombatAnimationElement.Stance st = null;
+					if (stanceName != "" && !stances.TryGetValue(stanceName, out st)) {
+						st = new CombatAnimationElement.Stance();
+						st.name = stanceName;
+						st.stanceAttackCurve = st.stanceIdleCurve = anm.attackCurve;
+						stances[stanceName] = st;
+					}
 
-				if (stanceName != "" && !stances.TryGetValue(stanceName, out st)) {
-					st = new CombatAnimationElement.Stance();
-					st.name = stanceName;
-					st.stanceAttackCurve = st.stanceIdleCurve = anm.attackCurve;
-					stances[stanceName] = st;
-				}
-
-				if (c.name.Contains("idle")) {
-					(st == null ? ref anm.idleObject : ref st.stanceIdleObject) = c.gameObject;
-					grabAura(c, idleAuras);
-					need &= ~1;
-				}
-				else if (c.name.Contains("attack")) {
-					(st == null ? ref anm.attackObject : ref st.stanceAttackObject) = c.gameObject;
-					need &= ~2;
-				}
-				else if (c.name.Contains("susp")) {
-					susp = c.gameObject;
-					need &= ~4;
-				}
-				else if (c.name.Contains("obliv")) {
-					oblv = c.gameObject;
-					need &= ~8;
+					if (c.name.Contains("idle")) {
+						(st == null ? ref anm.idleObject : ref st.stanceIdleObject) = c.gameObject;
+						grabAura(c, idleAuras);
+						need &= ~1;
+					}
+					else if (c.name.Contains("attack")) {
+						(st == null ? ref anm.attackObject : ref st.stanceAttackObject) = c.gameObject;
+						need &= ~2;
+					}
+					else if (c.name.Contains("susp")) {
+						susp = c.gameObject;
+						need &= ~4;
+					}
+					else if (c.name.Contains("obliv")) {
+						oblv = c.gameObject;
+						need &= ~8;
+					}
 				}
 			}
 

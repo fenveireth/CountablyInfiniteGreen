@@ -682,24 +682,41 @@ namespace FenLoader
 			return null;
 		}
 
+		static Dictionary<string, EnemyTells.TellState[]> preyTells = new Dictionary<string, EnemyTells.TellState[]>();
+
 		[HarmonyPatch(typeof(XMLParser), "GetPreyData")]
 		[HarmonyPostfix]
 		static void LoadPreyXML(XmlNode preyData)
 		{
 			string prey = null;
 			XmlElement sprites = null;
+			List<EnemyTells.TellState> calls = null;
 			foreach (XmlNode c in preyData)
 			{
 				if (c.Name == "id")
 					prey = c.InnerText;
 				else if (c.Name == "sprites")
 					sprites = (XmlElement)c;
+				else if (c.Name == "tells")
+				{
+					calls = new List<EnemyTells.TellState>();
+					foreach (XmlNode call in c) {
+						var o = call.Attributes?["on"];
+						if (call.Name == "call" && o != null)
+							calls.Add(new EnemyTells.TellState(o.Value, call.InnerText));
+					}
+				}
 			}
 
 			if (sprites == null)
 				Gfx.preyVisuals.Remove(prey);
 			else
 				Gfx.preyVisuals[prey] = (sprites, InMod);
+
+			if (calls == null)
+				preyTells.Remove(prey);
+			else
+				preyTells[prey] = calls.ToArray();
 		}
 
 		static GameObject LoadPrey(string preyname)
@@ -722,6 +739,10 @@ namespace FenLoader
 				foreach (Transform c in susp.transform) {
 					if (c.name.Contains("aura"))
 						pi.suspAura = c.GetComponent<SpriteRenderer>();
+				}
+				if (preyTells.TryGetValue(preyname, out var calls)) {
+					var et = go.AddComponent<EnemyTells>();
+					et.actionTell = calls;
 				}
 				go.SetActive(true);
 			}

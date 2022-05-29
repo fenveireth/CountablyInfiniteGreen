@@ -65,6 +65,32 @@
 					<path>img/fox/base.png</path>
 				</entity>
 			</sprite>
+			<!-- Could also have used stance="idle_WATER", as these are all of the
+				Water moves this creature has -->
+			<sprite stance="idle_FLOWING_STRIKE;PACIFY">
+				<scale>.3</scale>
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+					<color>
+						<b>1</b>
+					</color>
+				</entity>
+			</sprite>
+			<sprite stance="attack_FLOWING_STRIKE;PACIFY">
+				<scale>.3</scale>
+				<entity aura="1">
+					<path>img/fox/aura.png</path>
+				</entity>
+				<entity>
+					<path>img/fox/base.png</path>
+					<color>
+						<b>1</b>
+					</color>
+				</entity>
+			</sprite>
 			<sprite stance="obliv">
 				<scale>.3</scale>
 				<entity aura="1">
@@ -222,7 +248,7 @@
 			- CLIMB: cannot start a chase from afar if in 'forest' or 'woods' biome,
 				and player doesn't have it as well
 			- COURAGE: Always fight you on detection, overriding PreyType+Size logic
-			- COWARD: Attemps to flee at 60% healt
+			- COWARD: Attemps to flee at 60% health
 			- EXPLODE: if hit with fire attack, player skips turn, and creature uses
 				'EXPLODE'
 			- DISEASE_RIDDEN: 10% of damage to player added to 'DISEASE' counter
@@ -269,6 +295,7 @@
 				at random from actions list
 			-->
 			<ability>PASSIVE_CLIMB</ability>
+			<ability>PASSIVE_TELLS</ability>
 		</abilities>
 		<end_combat_health_ratio>0.25</end_combat_health_ratio>
 		<opening_actions>
@@ -295,8 +322,15 @@
 		</phase_two_combat_actions>
 		<summoned_creature_name>darksweet</summoned_creature_name>
 		<tells>
-			<call on="PHASE1"></call>
-			<call on="PHASE2"></call>
+			<!-- Curiously, PHASEx messages are shown even if the creature does
+				not have TELLS ability -->
+			<call on="PHASE1">&lt;writhing_question&gt;Opening the fight</call>
+			<call on="PHASE2">&lt;writhing_question&gt;Second phase. I can't actually do it, but pretend I'm turning red</call>
+			<call on="AIR">&lt;writhing_question&gt;About to play AIR</call>
+			<!-- Not enabling "WATER" : element match takes priority over ability
+				match, it would hide the 'pacify' call -->
+			<call on="PACIFY">&lt;writhing_question&gt;My next move will be PACIFY</call>
+			<!-- <call on="WATER">&lt;writhing_question&gt;I will now play WATER</call> -->
 		</tells>
 		<combat_position>0</combat_position>
 		<combat_size_mod>1</combat_size_mod> <!-- does not work -->
