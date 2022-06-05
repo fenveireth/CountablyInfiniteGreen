@@ -9,19 +9,21 @@ This page will teach you how to:
 ## Mod content folder location
 
 To navigate to your mod folder, start again from the game root folder from the
-'install loader' step
+[Install loader](./install-loader) step
 
-* Go to \Golden Treasure - The Great Green_Data\Resources\Mods.
+* Go to \Golden Treasure - The Great Green\_Data\Resources\Mods.
 
 Each folder here will correspond to an installed mod available to play
 
 ## Adding mod content.
 
-To add a mod content, copy the mod content intended for this game, into the mod content location.
+To add a mod content, copy the Zip intended for this game, into the mod content location.
 
 We will be using the included technical example "place it upon your mind" mod as an example for this guide.
 
-1. Obtain archive, in our case from the [Release page](../releases) -> "place_it_upon_your_mind.zip"
+1. Obtain archive, in our case "place_it_upon_your_mind.zip" :
+	 [link](../releases/latest/download/place_it_upon_your_mind.zip)  
+(See [Releases page](../releases/) for version notes and past versions)
 
 2. Place zip into the Mod content folder like so:<br>
 It will be processed when the game is started<br>

@@ -101,7 +101,7 @@ namespace FenLoader
 
 			if (dezipErr != null) {
 				Console.Error.WriteLine(dezipErr);
-				Patch.ErrorPopup.ShowPriorityText("Errors occurec while installing mods\nSee Player.log file");
+				Patch.ErrorPopup.ShowPriorityText("Errors occured while installing mods\nSee Player.log file");
 				dezipErr = null;
 			}
 

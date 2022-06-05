@@ -4,6 +4,10 @@ Mod and user content loader for "Golden Treasure - The Great Green"
 
 Functions as a run-time patch, based on UnityDoorstop and HarmonyX
 
+## Setup
+
+See [Guide](https://github.com/fenveireth/CountablyInfiniteGreen/wiki)
+
 ## Features
 
 Reactivates unfinished / disabled game features:
@@ -34,7 +38,7 @@ The most valuable source of information during development is the Unity 'Player.
 The base game's "Main as a mod" is legit, all folders go through the same loader, so
 the files there may also be of value
 
-## Building and Installation
+## Building from source
 
 Requires:
 
