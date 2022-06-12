@@ -1,0 +1,7 @@
+<fonts>
+	<!-- See also Events/09-fonts.tex -->
+	<font>
+		<id>narrator</id>
+		<path>fonts/CharisSILR.ttf</path>
+	</font>
+</fonts>

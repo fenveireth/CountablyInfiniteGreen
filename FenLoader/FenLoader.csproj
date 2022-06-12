@@ -28,6 +28,9 @@
 		<Reference Include="UnityEngine.Physics2DModule">
 			<HintPath>../originals/UnityEngine.Physics2DModule.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.TextRenderingModule">
+			<HintPath>../originals/UnityEngine.TextRenderingModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.UI">
 			<HintPath>../originals/UnityEngine.UI.dll</HintPath>
 		</Reference>

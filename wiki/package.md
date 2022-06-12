@@ -2,14 +2,14 @@
 
 You will typically be working directly in a directory in the Mods directory
 
+The mod is identified by the name of this folder
+
 When satisfied with your work, release it by completing the 'meta.xml' file, and
 zipping the folder.
 The zip archive is to be placed by the players in their Mods directory
 
 The zip must contain one directoy at the root level, which contains the
 meta.xml. See the included example mod for correct structure
-
-The mod is identified by the name of this folder
 
 ## The dezip step
 

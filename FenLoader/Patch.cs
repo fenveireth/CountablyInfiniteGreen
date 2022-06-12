@@ -33,6 +33,7 @@ namespace FenLoader
 				Harmony.CreateAndPatchAll(typeof(FileWatcher));
 				Harmony.CreateAndPatchAll(typeof(Gfx));
 				Harmony.CreateAndPatchAll(typeof(Install));
+				Harmony.CreateAndPatchAll(typeof(Fonts));
 				patched = true;
 
 				foreach (GameObject r in s.GetRootGameObjects())
