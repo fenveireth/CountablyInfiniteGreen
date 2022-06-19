@@ -18,6 +18,8 @@ namespace FenLoader
 					ttf = c.InnerText;
 			}
 
+			// Won't be SDF ?
+			// Glow-like effects (eg New Life screen) won't work
 			var font = new UnityEngine.Font(moddir + '/' + ttf);
 			var fa = TMPro.TMP_FontAsset.CreateFontAsset(font);
 			fa.name = name;
@@ -50,6 +52,14 @@ namespace FenLoader
 			{
 				Patch.ErrorPopup.ShowPriorityText("Error while loading fonts. See Player.log file");
 			}
+		}
+
+		[HarmonyPatch(typeof(NewLifeSelectScreen), "Start")]
+		[HarmonyPostfix]
+		static void MissingStyleParseNewLife(NewLifeSelectScreen __instance)
+		{
+			__instance.prompt.AddComponent<TextAnimator>();
+			__instance.prompt.AddComponent<TextParser>();
 		}
 	}
 }

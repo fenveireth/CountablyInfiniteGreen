@@ -1,7 +1,15 @@
 % Demonstrate:
 % - Use a custom font
+% - Define style alias
 
 % See Data/fonts.xml
+
+% Makes a "<myvoice>" tag available within this file
+\defstyle{myvoice <b><color #ffee00>\content</color></b>}
+
+% If named 'default', it will also implicitly wrap all paragraphs and options
+% in this file
+\defstyle{default <i>\content</i>}
 
 \event{fen_testfonts}
 
@@ -10,6 +18,8 @@ Observe superior unicode coverage :
 % as with other effects, </font> closing tag is optional, and styling applies
 % per paragraph
 <font narrator>œuf
+
+Observe use of <myvoice>My Voice</myvoice> within this line
 
 \option /EndEvent
 \transition{fade} \go{MainLair}

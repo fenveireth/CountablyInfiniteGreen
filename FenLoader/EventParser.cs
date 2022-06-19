@@ -30,9 +30,9 @@ namespace FenLoader
 		private List<EventOptionStatDependence> ifs = new List<EventOptionStatDependence>();
 		private List<EventOptionStatInfluence> sets = new List<EventOptionStatInfluence>();
 
-		private EventActor evt;
-
-		private string transition = "";
+		EventActor evt;
+		string transition = "";
+		Dictionary<string, (string, string)> styles = new Dictionary<string, (string, string)>();
 
 		private EventParser()
 		{
@@ -74,6 +74,8 @@ namespace FenLoader
 					acc.Add((byte)c);
 					FlushWord();
 				}
+				else if (inArg)
+					acc.Add((byte)c);
 				else {
 					FlushWord();
 					inCommand = true;
@@ -160,6 +162,16 @@ namespace FenLoader
 		{
 			switch (command)
 			{
+			// file level
+			case "defstyle":
+				int split_space = arg.IndexOf(' ');
+				if (split_space <= 0)
+					Raise("invalid \\defstyle");
+				string[] tpl = arg.Substring(split_space + 1).Split(new string[]{"\\content"}, StringSplitOptions.None);
+				if (tpl.Length != 2)
+					Raise("invalid \\defstyle");
+				styles.Add(arg.Substring(0, split_space), (tpl[0], tpl[1]));
+				break;
 			// event level
 			case "event":
 				FlushEvent();
@@ -342,19 +354,32 @@ namespace FenLoader
 			return new EventOptionStatInfluence(w[0], v, ty, influencer, mult);
 		}
 
-		private void FlushParagraph()
+		string ApplyStyles(string text)
+		{
+			// Don't break technical or graphical \options (eg /EndEvent)
+			if (text[0] != '/' && text[0] != '[' && styles.ContainsKey("default"))
+				text = "<default>" + text + "</default>";
+			foreach (var s in styles) {
+				text = text.Replace('<' + s.Key + '>', s.Value.Item1)
+					.Replace("</" + s.Key + '>', s.Value.Item2);
+			}
+
+			return text;
+		}
+
+		void FlushParagraph()
 		{
 			if (option == null)
 			{
 				if (paragraph.Length > 0) {
-					evt.AddTextBreakAtEnd(paragraph.ToString(), sets.ToArray(), effects.ToArray());
+					evt.AddTextBreakAtEnd(ApplyStyles(paragraph.ToString()), sets.ToArray(), effects.ToArray());
 					sets.Clear();
 					effects.Clear();
 				}
 			}
 			else
 			{
-				option.option_text = paragraph.ToString();
+				option.option_text = ApplyStyles(paragraph.ToString());
 				if (conditions.Count > 0) {
 					option.AddAppearanceDependence(new EventOptionAppearanceGroup(conditions.ToArray()));
 					conditions.Clear();
