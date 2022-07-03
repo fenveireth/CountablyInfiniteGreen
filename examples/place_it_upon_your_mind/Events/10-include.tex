@@ -1,0 +1,19 @@
+% Demonstrate:
+% - include other .tex files with \input
+
+% Does the same as 09-fonts.tex, but move style definitions to their own file,
+% so they can be shared by multiple event files
+
+% path relative to current file
+%\input{10-somesubdir/styles.tex}
+
+\event{fen_testinc}
+
+Just like with 09-fonts, observe superior unicode coverage :
+
+<font narrator>œuf
+
+Observe use of <myvoice>My Voice</myvoice> within this line
+
+\option /EndEvent
+\transition{fade} \go{MainLair}

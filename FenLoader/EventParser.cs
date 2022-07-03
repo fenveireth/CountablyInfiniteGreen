@@ -9,7 +9,16 @@ namespace FenLoader
 {
 	internal class EventParser
 	{
+		class IncStackLevel
+		{
+			public FileInfo Filename;
+			public Stream Stream;
+			public int Lineno = 1;
+		}
+
 		private EventHolder db;
+		private List<IncStackLevel> includeStack = new List<IncStackLevel>();
+		private int compressFilenames;
 
 		private readonly List<byte> acc = new List<byte>();
 		private bool inComment;
@@ -18,7 +27,7 @@ namespace FenLoader
 		private bool hadLF;
 		private bool startArg;
 		private bool inArg;
-		private int lineno = 1;
+
 		private int bracketBalance;
 
 		private StringBuilder paragraph = new StringBuilder();
@@ -34,13 +43,15 @@ namespace FenLoader
 		string transition = "";
 		Dictionary<string, (string, string)> styles = new Dictionary<string, (string, string)>();
 
+		IncStackLevel File => includeStack[includeStack.Count - 1];
+
 		private EventParser()
 		{
 		}
 
 		private void Raise(string msg)
 		{
-			throw new Exception($"  - line {lineno}: " + msg);
+			throw new Exception($"  - file {File.Filename.FullName.Substring(compressFilenames)}, line {File.Lineno}: " + msg);
 		}
 
 		private void Chr(int c)
@@ -58,7 +69,7 @@ namespace FenLoader
 			if (inComment)
 			{
 				if (c == '\n') {
-					++lineno;
+					File.Lineno++;
 					inComment = false;
 				}
 				return;
@@ -87,13 +98,13 @@ namespace FenLoader
 				FlushWord();
 				break;
 			case '\n':
-				++lineno;
 				if (hadLF)
 					FlushParagraph();
 				else {
 					FlushWord();
 					hadLF = true;
 				}
+				File.Lineno++;
 				break;
 			case '{':
 				++bracketBalance;
@@ -170,7 +181,19 @@ namespace FenLoader
 				string[] tpl = arg.Substring(split_space + 1).Split(new string[]{"\\content"}, StringSplitOptions.None);
 				if (tpl.Length != 2)
 					Raise("invalid \\defstyle");
-				styles.Add(arg.Substring(0, split_space), (tpl[0], tpl[1]));
+				string stylename = arg.Substring(0, split_space);
+				if (styles.ContainsKey(stylename))
+					Raise("\\defstyle: '" + stylename + "' is already defined");
+				styles.Add(stylename, (tpl[0], tpl[1]));
+				break;
+			case "input":
+				if (includeStack.Count > 32)
+					Raise("\\input: exceeded maximum include depth");
+				var included = new FileInfo(Path.Combine(File.Filename.Directory.FullName, arg));
+				includeStack.Add(new IncStackLevel {
+					Filename = included,
+					Stream = included.OpenRead(),
+				});
 				break;
 			// event level
 			case "event":
@@ -399,15 +422,27 @@ namespace FenLoader
 		{
 			try
 			{
-				using var file = fileinfo.OpenRead();
-				var p = new EventParser { db = db };
+				var file = fileinfo.OpenRead();
+				var p = new EventParser {
+					db = db,
+					compressFilenames = fileinfo.Directory.FullName.Length + 1,
+				};
+
+				p.includeStack.Add(new IncStackLevel {
+					Stream = file,
+					Filename = fileinfo,
+				});
 
 				int c;
-				do
+				while (p.includeStack.Count > 0)
 				{
-					c = file.ReadByte();
+					c = p.File.Stream.ReadByte();
 					p.Chr(c);
-				} while (c >= 0);
+					if (c < 0) {
+						p.File.Stream.Dispose();
+						p.includeStack.RemoveAt(p.includeStack.Count - 1);
+					}
+				}
 			}
 			catch (Exception e)
 			{

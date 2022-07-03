@@ -13,7 +13,7 @@ namespace FenLoader
 {
 	public class Patch
 	{
-		private const int VERSION = 6;
+		private const int VERSION = 7;
 
 		private static bool patched = false;
 
@@ -205,18 +205,24 @@ namespace FenLoader
 			return false;
 		}
 
+		static Dictionary<string, int> APIVerByMod = new Dictionary<string, int>();
+
 		// Prompt to update
 		[HarmonyPatch(typeof(XMLParser), "ReadModMeta")]
 		[HarmonyPostfix]
-		private static void MetaVerCheck(ref Dictionary<string, string> __result)
+		private static void MetaVerCheck(ref Dictionary<string, string> __result, string folderPath)
 		{
+			folderPath = folderPath.Replace('\\', '/');
+			var fs = folderPath.Split('/');
+			string mod = fs[fs.Length - 2];
 			int ver = 0;
 			if (__result.TryGetValue("targetLoaderVersion", out string sver))
 				int.TryParse(sver, out ver);
 			if (ver > VERSION) {
-				ErrorPopup.ShowPriorityText("Cannot load mod written for loader version " + ver + "\n" +
-						"Please check for an updated version of the loader");
+				ErrorPopup.ShowPriorityText("Cannot load mod '" + mod + "' written for loader version " + ver + "\n" +
+					"Please check for an updated version of the loader");
 			}
+			APIVerByMod[mod] = ver;
 		}
 
 
@@ -231,9 +237,20 @@ namespace FenLoader
 				if (!dir.Exists)
 					continue;
 				bool ok = true;
-				foreach (var f in dir.GetFiles("*.txt", SearchOption.AllDirectories))
+
+				string metapath = dir.FullName.Substring(0, dir.FullName.Length - 7) + "/meta.xml";
+				try {
+					XMLParser.ReadModMeta(metapath);
+				} catch {
+					ok = false;
+				}
+				int apiver = APIVerByMod[mod];
+
+				// v7 introduces \input
+				var opts = apiver >= 7 ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
+				foreach (var f in dir.GetFiles("*.txt", opts))
 					ok &= EventParser.Load(__instance, f);
-				foreach (var f in dir.GetFiles("*.tex", SearchOption.AllDirectories))
+				foreach (var f in dir.GetFiles("*.tex", opts))
 					ok &= EventParser.Load(__instance, f);
 				if (!ok)
 					ErrorPopup.ShowPriorityText("Errors occured loading mod '" + mod + "'\n"
