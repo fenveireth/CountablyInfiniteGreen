@@ -14,6 +14,17 @@ namespace FenLoader
 			public FileInfo Filename;
 			public Stream Stream;
 			public int Lineno = 1;
+			public string MacroName;
+			public int MacroLine;
+		}
+
+		class UserCmd
+		{
+			public string name;
+			public string template;
+			public int nbArgs;
+			public FileInfo definedInFile;
+			public int definedAtLine;
 		}
 
 		private EventHolder db;
@@ -42,6 +53,7 @@ namespace FenLoader
 		EventActor evt;
 		string transition = "";
 		Dictionary<string, (string, string)> styles = new Dictionary<string, (string, string)>();
+		Dictionary<string, UserCmd> userCmds = new Dictionary<string, UserCmd>();
 
 		IncStackLevel File => includeStack[includeStack.Count - 1];
 
@@ -51,7 +63,15 @@ namespace FenLoader
 
 		private void Raise(string msg)
 		{
-			throw new Exception($"  - file {File.Filename.FullName.Substring(compressFilenames)}, line {File.Lineno}: " + msg);
+			string stk = "";
+			foreach (var l in includeStack)
+			{
+				if (l.MacroName != null)
+					stk += $"  - expanding command {l.MacroName} (defined in file {l.Filename.FullName.Substring(compressFilenames)}, line {l.MacroLine})\n";
+				else
+					stk += $"  - file {l.Filename.FullName.Substring(compressFilenames)}, line {l.Lineno}\n";
+			}
+			throw new Exception(stk + "  : " + msg);
 		}
 
 		private void Chr(int c)
@@ -85,7 +105,9 @@ namespace FenLoader
 					acc.Add((byte)c);
 					FlushWord();
 				}
-				else if (inArg)
+				else if (inArg
+						// exception for \def: cram the defined signature in with the command name
+						|| (inCommand && acc.Count == 3 && Encoding.ASCII.GetString(acc.ToArray()) == "def"))
 					acc.Add((byte)c);
 				else {
 					FlushWord();
@@ -294,9 +316,55 @@ namespace FenLoader
 				break;
 
 			default:
-				Raise("Unknown command: " + command);
+				if (command == "def" || command.StartsWith("def\\"))
+					ParseDefine(command, arg);
+				else if (userCmds.TryGetValue(command, out UserCmd usercmd))
+					ExpandCmd(usercmd, arg);
+				else
+					Raise("Unknown command: " + command);
 				break;
 			}
+		}
+
+		private void ParseDefine(string command, string arg)
+		{
+			if (command.Length < 5 || arg == null)
+				Raise("Invalid \\def");
+
+			command = command.Substring(4);
+			int nbArgs = command.Count(c => c == '#');
+			command = command.Split('#')[0];
+			if (userCmds.ContainsKey(command))
+				Raise("\\def: command '" + userCmds + "' was already defined");
+			userCmds[command] = new UserCmd {
+				name = command,
+				template = arg.ToString(),
+				nbArgs = nbArgs,
+				definedInFile = File.Filename,
+				definedAtLine = File.Lineno,
+			};
+		}
+
+		private void ExpandCmd(UserCmd c, string arg)
+		{
+			string[] args = arg == null ? new string[]{} : arg.Split();
+			string expansion = c.template;
+			for (int i = 0; i < c.nbArgs; ++i) {
+				if (args.Length <= i)
+					Raise($"command {c.name} requires {c.nbArgs} arguments, got {args.Length}");
+				string thisarg = args[i];
+				if (i == c.nbArgs - 1)
+					thisarg = string.Join(" ", args.Skip(c.nbArgs - 1));
+				expansion = expansion.Replace("#" + (i + 1), thisarg);
+			}
+			if (includeStack.Count > 32)
+				Raise("exceeded maximum include depth");
+			includeStack.Add(new IncStackLevel {
+				Filename = c.definedInFile,
+				Stream = new MemoryStream(Encoding.UTF8.GetBytes(expansion)),
+				MacroName = c.name,
+				MacroLine = c.definedAtLine,
+			});
 		}
 
 		private EventOptionStatDependence ParseCond(string expr)
@@ -437,12 +505,14 @@ namespace FenLoader
 				while (p.includeStack.Count > 0)
 				{
 					c = p.File.Stream.ReadByte();
-					p.Chr(c);
-					if (c < 0) {
+					if (c >= 0)
+						p.Chr(c);
+					else {
 						p.File.Stream.Dispose();
 						p.includeStack.RemoveAt(p.includeStack.Count - 1);
 					}
 				}
+				p.Chr(-1);
 			}
 			catch (Exception e)
 			{

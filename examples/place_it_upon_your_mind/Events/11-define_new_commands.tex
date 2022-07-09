@@ -1,0 +1,177 @@
+% example: rewrite the Act 1 Mining event
+% Demonstrate \def of new commands
+
+% Defines the same event as 02-mining.tex, but more concisely
+
+% In combination with \input, you can use them to help make sure than the
+% variables for a given game mechanic are used consistently through the game
+
+% base form
+\def\usesShakestick{
+	\hint{If only you had a special tool for this...}
+	\hidden{TREASURE_SHAKESTICK >= 1}
+	\hidden{TREASURE_RESEARCHED_SHAKESTICK >= 1}
+	\hidden{TREASURE_USES_SHAKESTICK >= 1}
+	\set{TREASURE_USES_SHAKESTICK -= 1}}
+
+% Arguments: can have up to 9 (e.g. use \def\mycmd#1#2#3{...} for 3)
+% Every word on the call site is 1 argument + last argument gets all the extra
+% words
+\def\exit#1{\soundStop{DX7Amb} \transition{fade} \go{#1}}
+\def\exitT#1#2{\soundStop{DX7Amb} \transition{#2} \go{#1}}
+
+
+\event{dx7}
+\image{base:dx7_background}
+
+\sound{base:Audio/DX7_Ambience DX7Amb}
+\effect{OpenTray _ 1}
+
+This Sun, you have discovered a hidden outcropping of beautiful shinestone
+peeking though its mother-rock
+
+This particular kind, called "silver", is of some worth, but you will need
+either a mighty fire within or some kind of helpful tool to remove it.
+
+What will you do with this mass of potential Treasure?
+
+\option Melt if from the rocks with your breath.
+\if{FIRE >= 31} \if{ENERGY >= 6}
+	\set{ENERGY -= 5} \set{TEMP_FORESHADOW_ENERGY -= 5} \set{DX7_STATE = 1}
+	\go{dx7as}
+\if{ENERGY >= 6}
+	\set{ENERGY -= 5} \set{TEMP_FORESHADOW_ENERGY -= 5} \go{dx7af}
+
+\option Use your teeth and claws to break it away one small piece at a time.
+\if{ENERGY >= 11} \if{FIRE >= 20}
+	\set{DX7_STATE = 2} \set{ENERGY -= 10} \set{TEMP_FORESHADOW_ENERGY -= 10}
+	\set{DAMAGE += 3} \go{dx7bs}
+\if{ENERGY >= 11}
+	\set{ENERGY -= 10} \set{TEMP_FORESHADOW_ENERGY -= 10}
+	\set{DAMAGE += 3} \go{dx7bf}
+
+\option Use the Shakestick to extract the shinestone.
+% simple expansion here
+\usesShakestick \go{dx7c}
+
+\option Leave it, for now.
+% expansion with arguments here
+\exit{HEARTBONEVALLEY_MAP}
+
+
+\event{dx7c}
+You grasp the Shakestick in your maw, aim it at the shinestone and press the
+indentations with a foreclaw.
+
+The Air pulses with ripples like the disturbed surface of a pond, silent but
+still rattling your teeth, and the stone grasping the silver treasure is broken
+apart in shuddering fits right before your very muzzle, releasing chunks of its
+precious bounty.
+
+There is almost too much to transport back to your den... it takes you a few
+trips... but your trove has grown immensely this day. For a hatchling, you now
+have great wealth. You go to sleep atop the shiny mass and dream all night of
+how vast your treasure-holdings shall grow.
+
+\option /EndEvent
+	\set{TREASURE_SHIN += 30} \set{AIR += 1} \set{FIRE += 1}
+	\set{DX7_STATE = 3} \exit{DayTransition}
+
+
+%%%%%%%%%% use dragonfire %%%%%%%%%%%
+
+\event{dx7as}
+\effect{FirebreathEffect}
+It takes several mighty blasts, but your fiery breath burns like a shed scale
+of Sun himself.
+
+The shiny treasure-rock loses its hard shape and you manage to harvest much of
+it, though some remains.
+
+\option /EndEvent \set{TREASURE_SHIN += 16}
+% expansion of two-argument form
+\exitT{DayTransition fade}
+
+
+\event{dx7af}
+\effect{FirebreathEffect}
+Your breath is fierce enough to make Plants bow down before you and causes Grass
+to catch flame, but this Shinestone, a hatchling of Earth Herself, is more solid
+by far.
+
+You will need to grow the Fire Within more greatly before you can melt this. You
+are too exhausted to try again now, but at least this has been good practice.
+
+\option /EndEvent \set{FIRE += 3}
+\exit{DayTransition}
+
+
+%%%%%%%%%%% use claw %%%%%%%%%%
+
+\event{dx7bs}
+It is a long and weary affair to break the jealous, miserly stone away from the
+precious treasure using the hard parts of your Body, and you injure yourself
+twice (one broken tooth and one split claw), but you do manage to get a few
+chunks of the treasure out. A very few.
+
+\option /EndEvent \set{TREASURE_SHIN += 5}
+	\exit{DayTransition}
+
+
+\event{dx7bf}
+You have learned a valuable lesson this Sun: the power of Stone to resist your
+Body is very, very great.
+
+Despite your impassionated scrabblings and a bloody claw, the shinestone
+remains maddeningly mated to the cliff face. One tiny chip is all you get for
+your efforts this day.
+
+\option /EndEvent \set{TREASURE_SHIN += 1} \set{FIRE += 1}
+	\exit{DayTransition}
+
+
+%%%%%%%%%% return a second day to finish the hard way %%%%%%%%%%
+
+\event{dx7aa}
+\image{base:dx7_background}
+\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray _ 1}
+Returning to the shinestone-riddled mountain-wall, you see that there is a small
+amount left. Spend the day melting it loose and transporting it back to the den?
+
+\option Yes.
+\if{ENERGY >= 6}
+	\set{ENERGY -= 5} \set{TEMP_FORESHADOW_ENERGY -= 5} \go{dx7aa1}
+\option No. \exit{HeartboneValley_Map}
+
+\event{dx7aa1}
+\effect{FirebreathEffect}
+It is tiring, but as you pile more fire-refined shinestone into your trove, you
+feel that the effort was well-spent.
+
+\option /EndEvent \set{TREASURE_SHIN += 8} \set{DX7_STATE = 3}
+	\exit{DayTransition}
+
+
+\event{dx7bb}
+\image{base:dx7_background}
+\sound{base:Audio/DX7_Ambience DX7Amb} \effect{OpenTray _ 1}
+You could use your teeth and claws to rip a bit more of the shinestone out of
+this outcropping. It would take much effort, and probably a little pain. Will
+you?
+
+\option Yes.
+\if{ENERGY >= 11}
+	\set{ENERGY -= 10} \set{TEMP_FORESHADOW_ENERGY -= 10}
+	\set{DAMAGE += 3} \go{dx7bb1}
+\option Not this Sun.
+	\exit{HEARTBONEVALLEY_MAP}
+
+\event{dx7bb1}
+Earth yields up a little more of Her precious silvery flesh before the stones
+around it collapse, trapping the rest. Still, your toil was not in vain, and
+your trove has grown a little this Sun.
+
+\option /EndEvent \set{TREASURE_SHIN += 5} \set{DX7_STATE = 3}
+	\exit{DayTransition}
+
+
