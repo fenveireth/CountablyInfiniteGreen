@@ -61,5 +61,13 @@ namespace FenLoader
 			__instance.prompt.AddComponent<TextAnimator>();
 			__instance.prompt.AddComponent<TextParser>();
 		}
+
+		[HarmonyPatch(typeof(SequenceTextController), "InitializeSegment")]
+		[HarmonyPostfix]
+		static void MissingStyleParsePoem(SequenceTextController __instance, int index)
+		{
+			__instance.text_list[index].gameObject.AddComponent<TextAnimator>();
+			__instance.text_list[index].gameObject.AddComponent<TextParser>();
+		}
 	}
 }
