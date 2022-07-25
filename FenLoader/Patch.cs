@@ -86,17 +86,17 @@ namespace FenLoader
 					{
 						Console.WriteLine("- Applying patches");
 						Assembly dll = Assembly.LoadFile(path);
+						MethodInfo main = null;
 						foreach (Type t in dll.GetTypes())
-						{
-							var m = t.GetMethod("Main");
-							if (m == null)
-								throw new ArgumentException("assembly does not define a 'Main' method");
-							m.Invoke(null, null);
-						}
+							main = main ?? t.GetMethod("Main");
+						if (main == null)
+							throw new ArgumentException("assembly does not define a 'Main' method");
+						main.Invoke(null, null);
 					}
 					catch (Exception e)
 					{
 						Console.Error.WriteLine(e);
+						ErrorPopup.ShowPriorityText($"Error applying patches for '{mod}'\nPlease check Player.log file");
 					}
 				}
 			}
