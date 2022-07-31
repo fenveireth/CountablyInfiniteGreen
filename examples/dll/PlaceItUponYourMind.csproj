@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<AssemblyName>patches</AssemblyName>
+		<AssemblyName>place_it_upon_your_mind</AssemblyName>
 		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 		<TargetFramework>net4.8</TargetFramework>
 		<LangVersion>8</LangVersion>

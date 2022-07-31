@@ -68,13 +68,20 @@ namespace FenLoader
 
 
 		private static HashSet<string> loaded = new HashSet<string>();
+		private static HashSet<MethodInfo> loadedTypes = new HashSet<MethodInfo>();
 
 		private static void LoadMorePatches()
 		{
 			foreach (string mod in Profiles.currentProfile.modList)
 			{
-				string path = XMLParser.GetModsFolder() + '/' + mod + "/patches.dll";
+				string path = XMLParser.GetModsFolder() + '/' + mod + "/" + mod + ".dll";
 				Console.WriteLine("checking for " + path);
+
+				// Attempt to salvage older mods (v < 7)
+				string oldpath = XMLParser.GetModsFolder() + '/' + mod + "/patches.dll";
+				if (!File.Exists(path))
+					path = oldpath;
+
 				if (File.Exists(path))
 				{
 					if (loaded.Contains(path))
@@ -91,6 +98,14 @@ namespace FenLoader
 							main = main ?? t.GetMethod("Main");
 						if (main == null)
 							throw new ArgumentException("assembly does not define a 'Main' method");
+						if (loadedTypes.Contains(main))
+						{
+							// This should have been avoidable
+							// - Mono bug ? 'LoadFile' behaves as 'LoadFrom', contrary to msdn claim
+							// - AppDomains not available in game's runtime
+							throw new ArgumentException("assembly identity conflict with another loaded mod. Please make sure it is compiled with a unique name");
+						}
+						loadedTypes.Add(main);
 						main.Invoke(null, null);
 					}
 					catch (Exception e)

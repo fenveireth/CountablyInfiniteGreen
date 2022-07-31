@@ -12,7 +12,7 @@ To build this:
 - build with 'dotnet -c Release'
 
 Then:
-- copy resulting 'patches.dll' from bin/ to your mod root.
+- copy resulting '<your mod name>.dll' from bin/ to your mod root.
   Copy only this file, ignore the dependencies from Harmony, Unity, and the
   game's assembly
 
